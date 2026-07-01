@@ -1,0 +1,5 @@
+.env
+dalal_agents.db
+venv/
+__pycache__/
+*.pyc
