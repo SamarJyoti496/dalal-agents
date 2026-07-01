@@ -16,3 +16,4 @@ python-dotenv>=1.0
 tenacity>=8.2
 nsefin>=0.1.0
 google-genai>=1.0
+pyfiglet>=0.8

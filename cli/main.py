@@ -341,13 +341,32 @@ def build_callback(
     return cb
 
 
+# ─── ASCII art banner ─────────────────────────────────────────────────────────
+
+def _print_banner() -> None:
+    try:
+        import pyfiglet
+        art = pyfiglet.figlet_format("DALAL AGENTS", font="doom")
+    except Exception:
+        art = "DALAL AGENTS"
+
+    colors = ["bright_green", "green", "bright_green", "green", "bright_green", "green"]
+    t = Text()
+    for i, line in enumerate(art.splitlines()):
+        t.append(line + "\n", style=colors[i % len(colors)])
+
+    console.print()
+    console.print(Align.center(t))
+    console.print(Align.center(
+        Text("Multi-Agent LLM Trading System for Indian Markets", style="bold dim cyan")
+    ))
+    console.print(Align.center(
+        Text("NSE  ·  BSE  ·  Powered by Large Language Models", style="dim")
+    ))
+    console.print()
+
+
 # ─── Interactive setup wizard ─────────────────────────────────────────────────
-
-_WELCOME = (
-    "[bold green]DalalAgents: Multi-Agent LLM Trading Framework[/bold green]\n"
-    "[dim]Analyst Team  →  Research Debate  →  Trading Stage[/dim]"
-)
-
 
 def _qbox(title: str, body: str) -> Panel:
     return Panel(
@@ -358,14 +377,7 @@ def _qbox(title: str, body: str) -> Panel:
 
 
 def get_user_selections() -> dict:
-    console.print(Panel(
-        _WELCOME,
-        border_style="green",
-        title="Welcome to DalalAgents",
-        subtitle="[dim]Indian Equity Markets — NSE / BSE[/dim]",
-        padding=(1, 2),
-    ))
-    console.print()
+    _print_banner()
 
     # Step 1 — Ticker
     console.print(_qbox(
