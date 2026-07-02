@@ -22,10 +22,6 @@ MEMORY_PATH: Path = Path(__file__).resolve().parent.parent / "dalal_memory.md"
 _HEADER = "# DalalAgents Decision Memory\n\nAuto-generated — do not edit manually.\n\n"
 
 
-# =============================================================================
-# Write
-# =============================================================================
-
 def save_decision(state: "TradingState", memory_path: Path = MEMORY_PATH) -> None:
     """Append the final decision from a completed run to the memory file."""
     if state.final_decision is None:
@@ -53,10 +49,6 @@ def save_decision(state: "TradingState", memory_path: Path = MEMORY_PATH) -> Non
     with memory_path.open("a", encoding="utf-8") as f:
         f.write("\n" + "\n".join(entry_lines))
 
-
-# =============================================================================
-# Read
-# =============================================================================
 
 def load_recent_decisions(
     ticker: str,

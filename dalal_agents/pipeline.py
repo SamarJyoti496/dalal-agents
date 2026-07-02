@@ -32,11 +32,6 @@ from dalal_agents.tools import get_ohlcv
 
 _console = Console()
 
-
-# =============================================================================
-# SECTION 1 — SQLite persistence
-# =============================================================================
-
 DB_PATH: Path = Path(__file__).resolve().parent.parent / "dalal_agents.db"
 
 _DDL = """

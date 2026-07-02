@@ -7,9 +7,6 @@ from typing import Any, Literal, Optional
 from pydantic import BaseModel, Field, field_validator
 
 
-# =============================================================================
-# SECTION 1 — Enums
-# =============================================================================
 
 class Exchange(str, Enum):
     NSE = "NSE"
@@ -38,9 +35,6 @@ class DebateStance(str, Enum):
     SAFE = "SAFE"
 
 
-# =============================================================================
-# SECTION 2 — ToolCall
-# =============================================================================
 
 class ToolCall(BaseModel):
     tool_name: str
@@ -49,9 +43,6 @@ class ToolCall(BaseModel):
     called_at: datetime = Field(default_factory=datetime.now)
 
 
-# =============================================================================
-# SECTION 3 — Analyst Report Models
-# =============================================================================
 
 class TechnicalReport(BaseModel):
     ticker: str
@@ -84,7 +75,7 @@ class SentimentReport(BaseModel):
     reddit_sentiment_score: Optional[float] = Field(default=None, ge=-1.0, le=1.0)
     twitter_mention_count: Optional[int] = None
     news_sentiment_score: Optional[float] = Field(default=None, ge=-1.0, le=1.0)
-    fii_dii_flow: Optional[str] = None           # e.g. "FII net sold ₹1,200 Cr; DII net bought ₹800 Cr"
+    fii_dii_flow: Optional[str] = None
     overall_sentiment: str
     signal: Signal
     conviction: int = Field(ge=1, le=10)
@@ -135,9 +126,6 @@ class FundamentalsReport(BaseModel):
     tool_calls: list[ToolCall] = Field(default_factory=list)
 
 
-# =============================================================================
-# SECTION 4 — Debate Models
-# =============================================================================
 
 class DebateTurn(BaseModel):
     speaker: str                                 # e.g. "Bull Researcher"
@@ -161,9 +149,6 @@ class DebateTranscript(BaseModel):
         self.turns.append(turn)
 
 
-# =============================================================================
-# SECTION 5 — Trade and Risk Models
-# =============================================================================
 
 class TradeProposal(BaseModel):
     ticker: str
@@ -216,9 +201,6 @@ class FinalDecision(BaseModel):
     decided_at: datetime = Field(default_factory=datetime.now)
 
 
-# =============================================================================
-# SECTION 6 — TradingState (The Blackboard)
-# =============================================================================
 
 class TradingState(BaseModel):
     ticker: str
