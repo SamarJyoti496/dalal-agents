@@ -79,7 +79,7 @@ def get_technical_indicators(
         if pd.notna(atr_val) and close > 0:
             atr_pct = round(float(atr_val) / close * 100, 2)
 
-    # VWAP — cumulative over the lookback window
+    # VWAP - cumulative over the lookback window
     typical = (df["High"] + df["Low"] + df["Close"]) / 3
     vwap_raw = (typical * df["Volume"]).sum() / df["Volume"].sum()
     vwap = round(float(vwap_raw), 2) if pd.notna(vwap_raw) else None
