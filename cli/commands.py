@@ -42,15 +42,12 @@ from dalal_agents.config import (
     REDDIT_SECRET,
     REDDIT_USER_AGENT,
 )
+from dalal_agents.logging_config import setup_logging
 from dalal_agents.models import Exchange
 from dalal_agents.pipeline import DB_PATH, get_nse_trading_days, load_state, run_backtest, run_pipeline
 
 _console = Console()
 
-
-# =============================================================================
-# LLM factory
-# =============================================================================
 
 def _make_llm(provider: str, model: str | None = None):
     def _key_error(var: str) -> None:
@@ -64,23 +61,19 @@ def _make_llm(provider: str, model: str | None = None):
         if not GEMINI_API_KEY:
             _key_error("GEMINI_API_KEY")
         return GeminiClient(model=model or DEFAULT_GEMINI_MODEL)
-    if provider == "openai":
-        if not OPENAI_API_KEY:
-            _key_error("OPENAI_API_KEY")
-        return OpenAIClient(model=model or DEFAULT_OPENAI_MODEL)
+    if provider == "claude":
+        if not ANTHROPIC_API_KEY:
+            _key_error("ANTHROPIC_API_KEY")
+        return AnthropicClient(model=model or DEFAULT_MODEL)
     if provider == "openrouter":
         if not OPENROUTER_API_KEY:
             _key_error("OPENROUTER_API_KEY")
         return OpenRouterClient(model=model or DEFAULT_OPENROUTER_MODEL)
-    # default: claude
-    if not ANTHROPIC_API_KEY:
-        _key_error("ANTHROPIC_API_KEY")
-    return AnthropicClient(model=model or DEFAULT_MODEL)
+    # default: openai
+    if not OPENAI_API_KEY:
+        _key_error("OPENAI_API_KEY")
+    return OpenAIClient(model=model or DEFAULT_OPENAI_MODEL)
 
-
-# =============================================================================
-# Formatting helpers
-# =============================================================================
 
 _SIGNAL_STYLE: dict[str, str] = {
     "STRONG_BUY":  "bold green",
@@ -153,15 +146,13 @@ def _print_final_decision(fd, stats: dict | None = None) -> None:
     ))
 
 
-# =============================================================================
-# COMMAND: run
-# =============================================================================
-
 def cmd_run(args: argparse.Namespace) -> None:
     exchange = Exchange(args.exchange.upper())
     analysis_date = (
         date.fromisoformat(args.date) if args.date else date.today()
     )
+    log_file = setup_logging(f"run_{args.ticker.upper()}")
+    _console.print(f"  [dim]Logging to {log_file}[/dim]")
     reddit_creds = None
     if REDDIT_CLIENT_ID:
         reddit_creds = {
@@ -180,6 +171,7 @@ def cmd_run(args: argparse.Namespace) -> None:
             newsapi_key=NEWSAPI_KEY or "",
             reddit_creds=reddit_creds,
             skip_if_cached=not args.no_cache,
+            resume_from_checkpoint=not args.no_cache,
         )
     )
 
@@ -190,10 +182,6 @@ def cmd_run(args: argparse.Namespace) -> None:
         _console.print("[bold red][ERROR][/bold red] Pipeline completed but final_decision is None.")
         sys.exit(1)
 
-
-# =============================================================================
-# COMMAND: show
-# =============================================================================
 
 def cmd_show(args: argparse.Namespace) -> None:
     analysis_date = (
@@ -257,10 +245,6 @@ def cmd_show(args: argparse.Namespace) -> None:
     _console.print()
 
 
-# =============================================================================
-# COMMAND: history
-# =============================================================================
-
 def cmd_history(args: argparse.Namespace) -> None:
     if not DB_PATH.exists():
         _console.print(f"[dim][INFO][/dim] No database found at {DB_PATH}. Run a pipeline first.")
@@ -313,10 +297,6 @@ def cmd_history(args: argparse.Namespace) -> None:
     _console.print(f"  [dim]{len(rows)} record(s)[/dim]\n")
 
 
-# =============================================================================
-# COMMAND: list
-# =============================================================================
-
 def cmd_list(_args: argparse.Namespace) -> None:
     if not DB_PATH.exists():
         _console.print(f"[dim][INFO][/dim] No database found at {DB_PATH}. Run a pipeline first.")
@@ -361,15 +341,13 @@ def cmd_list(_args: argparse.Namespace) -> None:
     _console.print(f"  [dim]{len(rows)} ticker(s)  ·  DB: {DB_PATH}[/dim]\n")
 
 
-# =============================================================================
-# COMMAND: backtest
-# =============================================================================
-
 def cmd_backtest(args: argparse.Namespace) -> None:
     exchange      = Exchange(args.exchange.upper())
     start_date    = date.fromisoformat(args.start)
     end_date      = date.fromisoformat(args.end)
     capital       = float(args.capital)
+    log_file      = setup_logging(f"backtest_{args.ticker.upper()}")
+    _console.print(f"  [dim]Logging to {log_file}[/dim]")
 
     if start_date >= end_date:
         _console.print("[bold red][ERROR][/bold red] --start must be before --end.")
@@ -429,10 +407,6 @@ def cmd_backtest(args: argparse.Namespace) -> None:
     ))
 
 
-# =============================================================================
-# Argument parser
-# =============================================================================
-
 def build_parser() -> argparse.ArgumentParser:
     p = argparse.ArgumentParser(
         prog="dalal",
@@ -456,8 +430,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_run.add_argument("--exchange", default="NSE",       help="NSE or BSE (default: NSE)")
     p_run.add_argument("--no-cache", action="store_true", help="Force re-run even if cached")
     p_run.add_argument(
-        "--provider", default="claude", choices=["claude", "gemini", "openai", "openrouter"],
-        help="LLM provider: claude (default), gemini, openai, or openrouter",
+        "--provider", default="openai", choices=["claude", "gemini", "openai", "openrouter"],
+        help="LLM provider: openai (default), claude, gemini, or openrouter",
     )
     p_run.add_argument("--model", default=None, help="Override default model name for the chosen provider")
 
@@ -481,8 +455,8 @@ def build_parser() -> argparse.ArgumentParser:
     p_bt.add_argument("--capital",  default=1_000_000,   help="Starting capital in INR (default: 1000000)")
     p_bt.add_argument("--exchange", default="NSE",       help="NSE or BSE (default: NSE)")
     p_bt.add_argument(
-        "--provider", default="claude", choices=["claude", "gemini", "openai", "openrouter"],
-        help="LLM provider: claude (default), gemini, openai, or openrouter",
+        "--provider", default="openai", choices=["claude", "gemini", "openai", "openrouter"],
+        help="LLM provider: openai (default), claude, gemini, or openrouter",
     )
     p_bt.add_argument("--model", default=None, help="Override default model name for the chosen provider")
 
