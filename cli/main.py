@@ -154,8 +154,8 @@ def create_layout() -> Layout:
         Layout(name="footer",   size=3),
     )
     layout["main"].split_column(
-        Layout(name="upper",    ratio=3),   # progress + messages get more vertical space
-        Layout(name="analysis", ratio=2),
+        Layout(name="upper",    ratio=4),   # progress (9 agent rows) + messages need most of the height
+        Layout(name="analysis", ratio=1),
     )
     layout["upper"].split_row(
         Layout(name="progress", ratio=3),
@@ -604,6 +604,34 @@ def display_complete_report(state) -> None:
             Markdown(f"**Winner**: {rd.winning_stance}  |  **Signal**: {rd.consensus_signal}\n\n{rd.facilitator_verdict or ''}"),
             title="Research Debate", border_style="magenta", padding=(1, 2),
         ))
+    if state.trade_proposal:
+        tp = state.trade_proposal
+        console.print(Panel(
+            Markdown(
+                f"**Action**: {tp.action}  |  **Position size**: {tp.position_size_pct}%  |  "
+                f"**Holding period**: {tp.holding_period}\n\n"
+                f"**Entry**: {tp.entry_price}  **Target**: {tp.target_price}  "
+                f"**Stop**: {tp.stop_loss}  **R:R**: {tp.risk_reward_ratio}\n\n"
+                f"{tp.rationale}"
+            ),
+            title="Trader", border_style="yellow", padding=(1, 2),
+        ))
+    if state.risk_debate:
+        rd2 = state.risk_debate
+        console.print(Panel(
+            Markdown(f"**Winner**: {rd2.winning_stance}  |  **Signal**: {rd2.consensus_signal}\n\n{rd2.facilitator_verdict or ''}"),
+            title="Risk Debate", border_style="magenta", padding=(1, 2),
+        ))
+    if state.risk_assessment:
+        ra = state.risk_assessment
+        console.print(Panel(
+            Markdown(
+                f"**Approved action**: {ra.approved_action}  |  "
+                f"**Adjusted size**: {ra.adjusted_position_size_pct}%  |  "
+                f"**Risk level**: {ra.risk_level}\n\n{ra.rationale}"
+            ),
+            title="Risk Assessment", border_style="red", padding=(1, 2),
+        ))
 
 
 from cli.mock import fake_pipeline as _fake_pipeline
@@ -654,6 +682,7 @@ async def _run_analysis(sel: dict, *, mock: bool = False) -> None:
                 newsapi_key=NEWSAPI_KEY or "",
                 reddit_creds=reddit_creds,
                 skip_if_cached=use_cache,
+                resume_from_checkpoint=use_cache,
                 debate_rounds=debate_rounds,
                 progress_callback=cb,
             )
