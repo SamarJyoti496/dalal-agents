@@ -13,6 +13,7 @@ NEWSAPI_KEY: str = os.getenv("NEWSAPI_KEY", "")
 REDDIT_CLIENT_ID: str = os.getenv("REDDIT_CLIENT_ID", "")
 REDDIT_SECRET: str = os.getenv("REDDIT_SECRET", "")
 REDDIT_USER_AGENT: str = os.getenv("REDDIT_USER_AGENT", "")
+LOG_LEVEL: str = os.getenv("LOG_LEVEL", "INFO").upper()
 
 DEFAULT_MODEL: str = "claude-sonnet-4-6"
 DEFAULT_GEMINI_MODEL: str = "gemini-2.0-flash"
