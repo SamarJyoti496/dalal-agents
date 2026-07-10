@@ -177,6 +177,17 @@ async def run_pipeline(
     elapsed = round(time.perf_counter() - t_start, 1)
     if state.final_decision:
         state.final_decision.pipeline_duration_seconds = elapsed
+        state.final_decision.total_tool_calls = sum(
+            len(r.tool_calls)
+            for r in (
+                state.technical_report, state.sentiment_report,
+                state.news_report, state.fundamentals_report,
+                state.trade_proposal, state.risk_assessment,
+            )
+            if r is not None
+        )
+        if hasattr(llm, "get_stats"):
+            state.final_decision.total_llm_calls = llm.get_stats().get("calls", 0)
 
     persist_state(state, db_path)
     save_decision(state)          # append to dalal_memory.md
