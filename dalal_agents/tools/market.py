@@ -10,9 +10,6 @@ import yfinance as yf
 
 from dalal_agents.tools.guards import _check_lookahead, _flatten_columns, _strip_tz
 
-# ---------------------------------------------------------------------------
-# NSE browser session helper (shared by several tools)
-# ---------------------------------------------------------------------------
 
 def _nse_get(path: str, params: dict | None = None) -> dict | list:
     """
