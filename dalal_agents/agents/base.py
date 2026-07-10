@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import asyncio
 import json
+import logging
 import re
 from abc import ABC, abstractmethod
 from typing import Any, Callable, Optional
@@ -10,6 +11,8 @@ from pydantic import BaseModel, ConfigDict, ValidationError as PydanticValidatio
 
 from dalal_agents.config import MAX_TOOL_ITERATIONS
 from dalal_agents.models import TradingState, ToolCall
+
+logger = logging.getLogger("dalal_agents.agents")
 
 
 def _is_rate_limit(exc: Exception) -> bool:
@@ -108,13 +111,16 @@ class BaseAgent(ABC):
         return list(await asyncio.gather(*[run_one(tc) for tc in tc_list]))
 
     async def run(self, state: TradingState) -> BaseModel:
+        name = self.__class__.__name__
         messages: list[dict] = [
             {"role": "user", "content": self._build_user_message(state)}
         ]
         tool_specs = self._as_anthropic_tool_specs()
         accumulated_calls: list[ToolCall] = []
+        last_text = ""
 
         for _iteration in range(MAX_TOOL_ITERATIONS):
+            logger.debug("%s iteration %d/%d: calling LLM", name, _iteration + 1, MAX_TOOL_ITERATIONS)
 
             try:
                 response = await self.llm.call(
@@ -125,12 +131,18 @@ class BaseAgent(ABC):
             except Exception as exc:
                 if _is_rate_limit(exc):
                     wait = _rate_limit_wait(exc)
+                    logger.warning("%s hit rate limit, waiting %.0fs", name, wait)
                     print(f"  [rate limit] waiting {wait:.0f}s before retry…")
                     await asyncio.sleep(wait)
                     continue
+                logger.exception("%s LLM call failed", name)
                 raise
 
             if response.tool_calls:
+                logger.debug(
+                    "%s iteration %d: called tools %s", name, _iteration + 1,
+                    [tc["name"] for tc in response.tool_calls],
+                )
                 messages.append({
                     "role": "assistant",
                     "content": self._format_assistant_tool_use(response.text, response.tool_calls),
@@ -153,9 +165,14 @@ class BaseAgent(ABC):
                 continue
 
             text = response.text or ""
+            last_text = text
             json_match = re.search(r"```json\s*(.*?)\s*```", text, re.DOTALL)
 
             if not json_match:
+                logger.debug(
+                    "%s iteration %d: no ```json fence in response, retrying. Raw text:\n%s",
+                    name, _iteration + 1, text[:2000],
+                )
                 messages.append({"role": "assistant", "content": text})
                 messages.append({
                     "role": "user",
@@ -170,6 +187,10 @@ class BaseAgent(ABC):
             try:
                 data = json.loads(json_match.group(1))
             except json.JSONDecodeError as exc:
+                logger.error(
+                    "%s iteration %d: malformed JSON: %s\n%s",
+                    name, _iteration + 1, exc, json_match.group(1)[:2000],
+                )
                 raise RuntimeError(f"LLM produced malformed JSON: {exc}\n\n{json_match.group(1)}") from exc
 
             if isinstance(data, dict) and len(data) == 1:
@@ -196,6 +217,10 @@ class BaseAgent(ABC):
                         problems.append(f"  - {field}: got {e['input']!r} — {e['msg']}")
                 if not problems:
                     raise
+                logger.debug(
+                    "%s iteration %d: validation errors, retrying:\n%s",
+                    name, _iteration + 1, "\n".join(problems),
+                )
                 messages.append({"role": "assistant", "content": text})
                 messages.append({
                     "role": "user",
@@ -210,7 +235,12 @@ class BaseAgent(ABC):
                 })
                 continue
 
+        logger.error(
+            "%s exhausted %d iterations. Last raw response:\n%s",
+            name, MAX_TOOL_ITERATIONS, last_text[:2000],
+        )
         raise RuntimeError(
-            f"{self.__class__.__name__} exhausted {MAX_TOOL_ITERATIONS} iterations "
-            "without producing a valid JSON response."
+            f"{name} exhausted {MAX_TOOL_ITERATIONS} iterations "
+            "without producing a valid JSON response. See the log file for the last raw "
+            "LLM response."
         )
