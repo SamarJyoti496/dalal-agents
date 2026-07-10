@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import asyncio
+import logging
 from typing import Optional
 
 from rich import box
@@ -16,6 +17,7 @@ from dalal_agents.agents.analysts.sentiment    import SentimentAnalystAgent
 from dalal_agents.agents.analysts.technical    import TechnicalAnalystAgent
 
 _console = Console()
+logger = logging.getLogger("dalal_agents.agents")
 
 _SIGNAL_STYLE: dict[str, str] = {
     "STRONG_BUY":  "bold green",
@@ -122,6 +124,7 @@ class AnalystTeam:
                 if live is not None:
                     _status[name] = ("error", None, None)
                     live.update(_make_table())
+                logger.exception("%sAnalyst failed", name)
                 _errors[name] = f"{type(exc).__name__}: {exc}"
                 if on_done:
                     on_done(name, None, None, True)
