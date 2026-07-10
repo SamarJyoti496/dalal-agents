@@ -41,7 +41,11 @@ async def run_trading_stage(
         f"[Stage II / Step 1] TraderAgent done — action={proposal.action}, "
         f"size={proposal.position_size_pct}%, R/R={proposal.risk_reward_ratio}"
     )
-    _cb("stage_done", stage="Trader")
+    _cb(
+        "stage_done", stage="Trader",
+        action=proposal.action, size=proposal.position_size_pct,
+        risk_reward=proposal.risk_reward_ratio,
+    )
 
     _cb("stage_start", stage="Risk Debate")
     _p(f"[Stage II / Step 2] RiskDebate running...")
@@ -51,7 +55,11 @@ async def run_trading_stage(
         f"[Stage II / Step 2] RiskDebate done — "
         f"winner={state.risk_debate.winning_stance if state.risk_debate else 'N/A'}"
     )
-    _cb("stage_done", stage="Risk Debate")
+    _cb(
+        "stage_done", stage="Risk Debate",
+        winner=state.risk_debate.winning_stance if state.risk_debate else None,
+        signal=state.risk_debate.consensus_signal if state.risk_debate else None,
+    )
 
     _cb("stage_start", stage="Risk Assessment")
     _p(f"[Stage II / Step 3] RiskAssessmentAgent running...")
@@ -64,7 +72,12 @@ async def run_trading_stage(
         f"adjusted_size={risk_assessment.adjusted_position_size_pct}%, "
         f"risk={risk_assessment.risk_level}"
     )
-    _cb("stage_done", stage="Risk Assessment")
+    _cb(
+        "stage_done", stage="Risk Assessment",
+        approved=risk_assessment.approved_action,
+        adjusted_size=risk_assessment.adjusted_position_size_pct,
+        risk_level=risk_assessment.risk_level,
+    )
 
     _cb("stage_start", stage="Fund Manager")
     _p(f"[Stage II / Step 4] FundManagerAgent running...")
@@ -78,6 +91,9 @@ async def run_trading_stage(
         f"size={final_decision.position_size_pct}% "
         f"(Stage II total: {elapsed}s)"
     )
-    _cb("stage_done", stage="Fund Manager")
+    _cb(
+        "stage_done", stage="Fund Manager",
+        action=final_decision.action, size=final_decision.position_size_pct,
+    )
 
     return state
