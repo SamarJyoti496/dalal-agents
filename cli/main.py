@@ -154,8 +154,8 @@ def create_layout() -> Layout:
         Layout(name="footer",   size=3),
     )
     layout["main"].split_column(
-        Layout(name="upper",    ratio=4),   # progress (9 agent rows) + messages need most of the height
-        Layout(name="analysis", ratio=1),
+        Layout(name="upper"),               # progress (9 agent rows) + messages get all remaining height
+        Layout(name="analysis", size=5),    # fixed compact height, doesn't eat into progress space
     )
     layout["upper"].split_row(
         Layout(name="progress", ratio=3),
@@ -334,6 +334,9 @@ def build_callback(
                 if summary:
                     report_lines.append(f"\n{summary}")
                 mb.current_report = "\n".join(report_lines)
+                # Printed to scrollback (not just the fixed-height panel) so every
+                # agent's result stays visible no matter how short the terminal is.
+                console.print(f"  [bold green]✓[/bold green] {stage}: {detail}")
             elif winner is not None:
                 winner = _clean(winner)
                 sig_txt = f"  signal {_clean(signal)}" if signal else ""
@@ -342,6 +345,7 @@ def build_callback(
                 if summary:
                     report_lines.append(f"\n{summary}")
                 mb.current_report = "\n".join(report_lines)
+                console.print(f"  [bold green]✓[/bold green] {stage}: winner {winner}{sig_txt}")
             else:
                 mb.add_message("System", f"{stage} — complete")
 
@@ -357,6 +361,7 @@ def build_callback(
             if error:
                 mb.update_status(agent, "error")
                 mb.add_message("Error", f"{agent} failed")
+                console.print(f"  [bold red]✗[/bold red] {agent} failed")
             else:
                 mb.update_status(agent, "completed")
                 color = _SIGNAL_COLOR.get(signal or "", "white")
@@ -367,6 +372,10 @@ def build_callback(
                     f"Signal    [{color}]{signal}[/{color}]\n"
                     f"Conviction  {conviction} / 10"
                 )
+                console.print(
+                    f"  [bold green]✓[/bold green] {agent}: [{color}]{signal}[/{color}]  "
+                    f"conviction {conviction}/10"
+                )
 
             _refresh()
 
@@ -374,6 +383,7 @@ def build_callback(
             for agent in mb.agent_status:
                 mb.update_status(agent, "completed")
             mb.add_message("System", "Cache hit — loaded from disk, skipping pipeline")
+            console.print("  [bold cyan]Cache hit[/bold cyan] — loaded from disk, skipping pipeline")
             _refresh()
 
     return cb
