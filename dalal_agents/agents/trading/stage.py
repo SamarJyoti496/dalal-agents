@@ -43,8 +43,8 @@ async def run_trading_stage(
     )
     _cb(
         "stage_done", stage="Trader",
-        action=proposal.action, size=proposal.position_size_pct,
-        risk_reward=proposal.risk_reward_ratio,
+        action=str(proposal.action), size=proposal.position_size_pct,
+        summary=proposal.rationale,
     )
 
     _cb("stage_start", stage="Risk Debate")
@@ -57,8 +57,8 @@ async def run_trading_stage(
     )
     _cb(
         "stage_done", stage="Risk Debate",
-        winner=state.risk_debate.winning_stance if state.risk_debate else None,
-        signal=state.risk_debate.consensus_signal if state.risk_debate else None,
+        winner=str(state.risk_debate.winning_stance) if state.risk_debate else None,
+        summary=state.risk_debate.facilitator_verdict if state.risk_debate else None,
     )
 
     _cb("stage_start", stage="Risk Assessment")
@@ -74,9 +74,8 @@ async def run_trading_stage(
     )
     _cb(
         "stage_done", stage="Risk Assessment",
-        approved=risk_assessment.approved_action,
-        adjusted_size=risk_assessment.adjusted_position_size_pct,
-        risk_level=risk_assessment.risk_level,
+        action=str(risk_assessment.approved_action), size=risk_assessment.adjusted_position_size_pct,
+        risk_level=str(risk_assessment.risk_level), summary=risk_assessment.rationale,
     )
 
     _cb("stage_start", stage="Fund Manager")
@@ -93,7 +92,8 @@ async def run_trading_stage(
     )
     _cb(
         "stage_done", stage="Fund Manager",
-        action=final_decision.action, size=final_decision.position_size_pct,
+        action=str(final_decision.action), size=final_decision.position_size_pct,
+        summary=final_decision.rationale,
     )
 
     return state

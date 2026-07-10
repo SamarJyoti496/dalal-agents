@@ -146,10 +146,12 @@ async def run_pipeline(
                 f"[bold]Signal:[/bold] {rd.consensus_signal}"
             )
         save_checkpoint(state, "Research Debate", db_path)
+        rd = state.research_debate
         _cb(
             "stage_done", stage="Research Debate",
-            winner=state.research_debate.winning_stance if state.research_debate else None,
-            signal=state.research_debate.consensus_signal if state.research_debate else None,
+            winner=str(rd.winning_stance) if rd else None,
+            signal=str(rd.consensus_signal) if rd else None,
+            summary=rd.facilitator_verdict if rd else None,
         )
     else:
         _cb("stage_start", stage="Research Debate")

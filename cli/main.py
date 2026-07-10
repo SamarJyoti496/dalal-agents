@@ -225,9 +225,11 @@ def update_display(
     )
 
     # ── Messages panel ────────────────────────────────────────────────────────
+    # Newest first: if the panel isn't tall enough to fit everything, Rich crops
+    # from the bottom, so the most recent entries (now at the top) stay visible.
     _TYPE_COLOR = {"System": "dim cyan", "Agent": "green", "Error": "red"}
     lines = []
-    for ts, mtype, content in list(mb.messages)[-16:]:
+    for ts, mtype, content in reversed(list(mb.messages)[-30:]):
         col = _TYPE_COLOR.get(mtype, "white")
         lines.append(f"[dim]{ts}[/dim] [{col}]{mtype:<7}[/{col}] {str(content)[:100]}")
     msg_body = "\n".join(lines) if lines else "[dim]No activity yet…[/dim]"
@@ -292,6 +294,11 @@ def build_callback(
     def _refresh():
         update_display(layout, mb, ticker, exchange, date_str, provider, start_time, llm)
 
+    def _clean(v) -> str:
+        """'Signal.BUY' -> 'BUY' (enums are passed through str() before reaching the callback)."""
+        s = str(v)
+        return s.rsplit(".", 1)[-1] if "." in s else s
+
     def cb(event: str, **kw):
         if event == "stage_start":
             stage = kw["stage"]
@@ -306,7 +313,38 @@ def build_callback(
             for agent in _STAGE_AGENTS.get(stage, []):
                 if mb.agent_status.get(agent) != "error":
                     mb.update_status(agent, "completed")
-            mb.add_message("System", f"{stage} — complete")
+
+            action  = kw.get("action")
+            winner  = kw.get("winner")
+            signal  = kw.get("signal")
+            size    = kw.get("size")
+            risk_lv = kw.get("risk_level")
+            summary = kw.get("summary")
+
+            if action is not None:
+                action = _clean(action)
+                color  = _SIGNAL_COLOR.get(action, "white")
+                detail = f"[{color}]{action}[/{color}]"
+                if size is not None:
+                    detail += f"  size {size}%"
+                mb.add_message("Agent", f"{stage}: {action}" + (f" ({size}%)" if size is not None else ""))
+                report_lines = [f"[bold]{stage}[/bold]", f"Action    {detail}"]
+                if risk_lv is not None:
+                    report_lines.append(f"Risk      {_clean(risk_lv)}")
+                if summary:
+                    report_lines.append(f"\n{summary}")
+                mb.current_report = "\n".join(report_lines)
+            elif winner is not None:
+                winner = _clean(winner)
+                sig_txt = f"  signal {_clean(signal)}" if signal else ""
+                mb.add_message("Agent", f"{stage}: winner {winner}{sig_txt}")
+                report_lines = [f"[bold]{stage}[/bold]", f"Winner    {winner}{sig_txt}"]
+                if summary:
+                    report_lines.append(f"\n{summary}")
+                mb.current_report = "\n".join(report_lines)
+            else:
+                mb.add_message("System", f"{stage} — complete")
+
             _refresh()
 
         elif event == "analyst_done":
