@@ -1,11 +1,3 @@
-"""
-cli/main.py — Interactive Rich terminal UI for DalalAgents.
-Modelled after TauricResearch/TradingAgents.
-
-Run:
-    python cli/main.py
-    python -m cli.main
-"""
 from __future__ import annotations
 
 import asyncio
@@ -99,7 +91,7 @@ _SIGNAL_COLOR = {
 }
 
 
-# State model (mirrors TradingAgents' MessageBuffer)
+# State model
 
 class MessageBuffer:
 
@@ -673,9 +665,6 @@ def display_complete_report(state) -> None:
         ))
 
 
-from cli.mock import fake_pipeline as _fake_pipeline
-
-
 async def _run_analysis(sel: dict, *, mock: bool = False) -> None:
     ticker        = sel["ticker"]
     date_str      = sel["analysis_date"]
@@ -770,7 +759,7 @@ async def _run_analysis(sel: dict, *, mock: bool = False) -> None:
         console.print(f"[green]✓ Saved:[/green] {out_path.resolve()}")
 
 
-# ─── Typer entry point ────────────────────────────────────────────────────────
+# Typer entry point 
 
 @app.command()
 def analyze():
