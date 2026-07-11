@@ -34,13 +34,6 @@ from rich.text import Text
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-# Reconfigure stdout/stderr to UTF-8 on Windows so Rich can render Unicode box chars.
-# Must happen before Console() is created.
-if sys.platform == "win32" and hasattr(sys.stdout, "reconfigure"):
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-if sys.platform == "win32" and hasattr(sys.stderr, "reconfigure"):
-    sys.stderr.reconfigure(encoding="utf-8", errors="replace")
-
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -66,8 +59,7 @@ app = typer.Typer(
     add_completion=False,
 )
 
-# ─── Questionary styles ───────────────────────────────────────────────────────
-
+# Questionary styles
 _QS_YELLOW = QStyle([
     ("selected",    "fg:yellow noinherit"),
     ("highlighted", "fg:yellow noinherit"),
@@ -85,7 +77,7 @@ _QS_GREEN = QStyle([
     ("highlighted", "noinherit"),
 ])
 
-# ─── Pipeline stage → agent rows ──────────────────────────────────────────────
+# Pipeline stage -> agent rows
 
 # Each stage maps to a list of agent display names shown in the progress table.
 # Analyst Team has individual agents; trading stages are split into 4 visible rows.
@@ -107,7 +99,7 @@ _SIGNAL_COLOR = {
 }
 
 
-# ─── State model (mirrors TradingAgents' MessageBuffer) ──────────────────────
+# State model (mirrors TradingAgents' MessageBuffer)
 
 class MessageBuffer:
 
@@ -144,7 +136,7 @@ class MessageBuffer:
         return len(self.agent_status)
 
 
-# ─── Rich layout & display ────────────────────────────────────────────────────
+# Rich layout & display
 
 def create_layout() -> Layout:
     layout = Layout()
@@ -154,8 +146,8 @@ def create_layout() -> Layout:
         Layout(name="footer",   size=3),
     )
     layout["main"].split_column(
-        Layout(name="upper"),               # progress (9 agent rows) + messages get all remaining height
-        Layout(name="analysis", size=5),    # fixed compact height, doesn't eat into progress space
+        Layout(name="upper",    ratio=4),   # progress (9 agent rows) + messages need most of the height
+        Layout(name="analysis", ratio=1),
     )
     layout["upper"].split_row(
         Layout(name="progress", ratio=3),
@@ -175,7 +167,7 @@ def update_display(
     llm=None,
 ) -> None:
 
-    # ── Header ────────────────────────────────────────────────────────────────
+    # Header
     layout["header"].update(Panel(
         f"[bold green]Welcome to DalalAgents CLI[/bold green]\n"
         f"[dim]Multi-Agent LLM Trading System for Indian Markets (NSE / BSE)[/dim]",
@@ -187,7 +179,7 @@ def update_display(
         expand=True,
     ))
 
-    # ── Progress table ────────────────────────────────────────────────────────
+    # Progress table
     prog = Table(
         show_header=True,
         header_style="bold magenta",
@@ -224,7 +216,7 @@ def update_display(
         Panel(prog, title="[bold]Progress[/bold]", border_style="cyan", padding=(0, 1))
     )
 
-    # ── Messages panel ────────────────────────────────────────────────────────
+    # Messages panel
     # Newest first: if the panel isn't tall enough to fit everything, Rich crops
     # from the bottom, so the most recent entries (now at the top) stay visible.
     _TYPE_COLOR = {"System": "dim cyan", "Agent": "green", "Error": "red"}
@@ -239,7 +231,7 @@ def update_display(
               border_style="blue", padding=(0, 1))
     )
 
-    # ── Analysis panel ────────────────────────────────────────────────────────
+    # Analysis panel
     if mb.current_report:
         layout["analysis"].update(Panel(
             Text.from_markup(mb.current_report),
@@ -255,7 +247,7 @@ def update_display(
             padding=(1, 2),
         ))
 
-    # ── Footer stats ──────────────────────────────────────────────────────────
+    # Footer stats
     elapsed = time.time() - start_time
     elapsed_str = f"[bold]⏱[/bold]  {int(elapsed // 60):02d}:{int(elapsed % 60):02d}"
     stats_parts = [
@@ -279,7 +271,7 @@ def update_display(
     layout["footer"].update(Panel(ft, border_style="grey50"))
 
 
-# ─── Pipeline progress callback ───────────────────────────────────────────────
+# Pipeline progress callback
 
 def build_callback(
     mb:         MessageBuffer,
@@ -389,8 +381,7 @@ def build_callback(
     return cb
 
 
-# ─── ASCII art banner ─────────────────────────────────────────────────────────
-
+# ASCII art banner
 def _print_banner() -> None:
     try:
         import pyfiglet
@@ -409,12 +400,12 @@ def _print_banner() -> None:
         Text("Multi-Agent LLM Trading System for Indian Markets", style="bold dim cyan")
     ))
     console.print(Align.center(
-        Text("NSE  ·  BSE  ·  Powered by Large Language Models", style="dim")
+        Text("NSE  ·  BSE  ", style="dim")
     ))
     console.print()
 
 
-# ─── Interactive setup wizard ─────────────────────────────────────────────────
+# Interactive setup wizard
 
 def _qbox(title: str, body: str) -> Panel:
     return Panel(
@@ -544,7 +535,7 @@ def get_user_selections() -> dict:
     }
 
 
-# ─── LLM factory ─────────────────────────────────────────────────────────────
+# LLM factory
 
 def _make_llm(provider: str):
     if provider == "gemini":
@@ -571,7 +562,7 @@ def _make_llm(provider: str):
     return AnthropicClient(model=DEFAULT_MODEL)
 
 
-# ─── Post-analysis display ────────────────────────────────────────────────────
+# Post-analysis display
 
 def _fmt_inr(val) -> str:
     return "—" if val is None else f"₹{float(val):,.2f}"
@@ -684,7 +675,6 @@ def display_complete_report(state) -> None:
 
 from cli.mock import fake_pipeline as _fake_pipeline
 
-# ─── Async pipeline runner ────────────────────────────────────────────────────
 
 async def _run_analysis(sel: dict, *, mock: bool = False) -> None:
     ticker        = sel["ticker"]
