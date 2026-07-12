@@ -2,14 +2,12 @@
 
 DalalAgents is a multi-agent LLM system that analyses Indian stock market tickers (NSE/BSE) and produces a reasoned trade decision for any given date. It runs a three-stage pipeline — analyst team, research debate, trading stage — each stage implemented as an autonomous LLM agent with tool access. All decisions are persisted in a local SQLite database, enabling historical replay and backtesting without repeating API calls.
 
----
 
 ## How it works
 ![Alt Text](design.png)
 
 Every agent runs a **ReAct loop** (`dalal_agents/agents/base.py`): it can call tools (yfinance, screener.in, NewsAPI, Reddit), inspect results, then produce a Pydantic-typed JSON output. Stages share a single `TradingState` blackboard object, so each stage sees everything the earlier stages produced. Progress is checkpointed to SQLite after every stage, so a crash mid-run doesn't waste the LLM calls already spent.
 
----
 
 ## What makes it different from the TradingAgents paper repo
 
@@ -20,7 +18,6 @@ Every agent runs a **ReAct loop** (`dalal_agents/agents/base.py`): it can call t
 - **SQLite persistence** Every pipeline run is stored in `dalal_agents.db`. Re-running the same ticker + date is a sub-second DB read. Backtests reuse cached decisions and never call the LLM twice for the same day.
 - **Decision journal.** Every final decision is also appended to `dalal_memory.md` in plain English, and fed back into the FundManagerAgent's prompt on future runs for the same ticker.
 
----
 
 ## Installation
 
@@ -37,7 +34,6 @@ source venv/bin/activate
 pip install -r requirements.txt
 ```
 
----
 
 ## API keys
 
@@ -61,7 +57,6 @@ LOG_LEVEL=
 
 You only need the key for the provider you actually use. OpenRouter gives access to Claude, Gemini, GPT-4o, Llama, and many others through a single key — get one at https://openrouter.ai/keys. Without the optional news/Reddit keys, those analyst agents return gracefully degraded reports.
 
----
 
 ## Usage
 
@@ -148,14 +143,6 @@ To exercise the TUI itself with zero API calls (useful when iterating on the dis
 python -m cli.main mock --ticker RELIANCE
 ```
 
----
-
-## Logs
-
-Every `run`/`backtest` invocation writes a timestamped debug log under `logs/` (git-ignored), capturing each agent's tool calls, raw LLM responses on retries, and validation errors — useful for diagnosing a failure like "exhausted N iterations" after the fact. Verbosity is controlled by `LOG_LEVEL` in `.env` (default `INFO`; set to `DEBUG` for full detail).
-
----
-
 ## Project structure
 
 ```
@@ -213,7 +200,6 @@ dalal-agents/
 └── reports/                        ← JSON exports from the interactive TUI (git-ignored)
 ```
 
----
 
 ## Disclaimer
 
