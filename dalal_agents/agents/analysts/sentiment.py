@@ -55,7 +55,7 @@ class SentimentAnalystAgent(BaseAgent):
 
     def __init__(self, llm, newsapi_key: str = "", reddit_creds: Optional[dict] = None):
         super().__init__(llm)
-        self._newsapi_key  = newsapi_key
+        self._newsapi_key = newsapi_key
         self._reddit_creds = reddit_creds or {}
 
     @property
@@ -64,7 +64,7 @@ class SentimentAnalystAgent(BaseAgent):
 
     @property
     def tools(self) -> list[ToolDefinition]:
-        newsapi_key  = self._newsapi_key
+        newsapi_key = self._newsapi_key
         reddit_creds = self._reddit_creds
 
         return [
@@ -78,10 +78,16 @@ class SentimentAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "as_of_date":    {"type": "string", "format": "date",
-                                          "description": "Cut-off date (YYYY-MM-DD)."},
-                        "lookback_days": {"type": "integer", "default": 5,
-                                          "description": "Number of trading days to fetch (default 5)."},
+                        "as_of_date": {
+                            "type": "string",
+                            "format": "date",
+                            "description": "Cut-off date (YYYY-MM-DD).",
+                        },
+                        "lookback_days": {
+                            "type": "integer",
+                            "default": 5,
+                            "description": "Number of trading days to fetch (default 5).",
+                        },
                     },
                     "required": ["as_of_date"],
                 },
@@ -98,15 +104,14 @@ class SentimentAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "company_name":  {"type": "string",  "description": "Full company name."},
-                        "as_of_date":    {"type": "string",  "format": "date"},
+                        "company_name": {"type": "string", "description": "Full company name."},
+                        "as_of_date": {"type": "string", "format": "date"},
                         "lookback_days": {"type": "integer", "default": 7},
                     },
                     "required": ["company_name", "as_of_date"],
                 },
                 fn=lambda company_name, as_of_date, lookback_days=7: get_india_stock_news(
-                    company_name, date.fromisoformat(as_of_date),
-                    int(lookback_days), newsapi_key
+                    company_name, date.fromisoformat(as_of_date), int(lookback_days), newsapi_key
                 ),
             ),
             ToolDefinition(
@@ -119,17 +124,22 @@ class SentimentAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "query":         {"type": "string",  "description": "Search term, e.g. ticker or company name."},
-                        "as_of_date":    {"type": "string",  "format": "date"},
+                        "query": {
+                            "type": "string",
+                            "description": "Search term, e.g. ticker or company name.",
+                        },
+                        "as_of_date": {"type": "string", "format": "date"},
                         "lookback_days": {"type": "integer", "default": 7},
                     },
                     "required": ["query", "as_of_date"],
                 },
                 fn=lambda query, as_of_date, lookback_days=7: get_india_reddit_sentiment(
-                    query, date.fromisoformat(as_of_date), int(lookback_days),
-                    reddit_creds.get("client_id",     ""),
+                    query,
+                    date.fromisoformat(as_of_date),
+                    int(lookback_days),
+                    reddit_creds.get("client_id", ""),
                     reddit_creds.get("client_secret", ""),
-                    reddit_creds.get("user_agent",    "DalalAgents/1.0"),
+                    reddit_creds.get("user_agent", "DalalAgents/1.0"),
                 ),
             ),
             ToolDefinition(
@@ -142,8 +152,8 @@ class SentimentAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "ticker":     {"type": "string",  "description": "NSE ticker without suffix."},
-                        "as_of_date": {"type": "string",  "format": "date"},
+                        "ticker": {"type": "string", "description": "NSE ticker without suffix."},
+                        "as_of_date": {"type": "string", "format": "date"},
                     },
                     "required": ["ticker", "as_of_date"],
                 },
@@ -161,8 +171,8 @@ class SentimentAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "ticker":        {"type": "string",  "description": "NSE ticker without suffix."},
-                        "as_of_date":    {"type": "string",  "format": "date"},
+                        "ticker": {"type": "string", "description": "NSE ticker without suffix."},
+                        "as_of_date": {"type": "string", "format": "date"},
                         "lookback_days": {"type": "integer", "default": 30},
                     },
                     "required": ["ticker", "as_of_date"],

@@ -12,18 +12,18 @@ from rich.text import Text
 
 from dalal_agents.models import TradingState
 from dalal_agents.agents.analysts.fundamentals import FundamentalsAnalystAgent
-from dalal_agents.agents.analysts.news         import NewsAnalystAgent
-from dalal_agents.agents.analysts.sentiment    import SentimentAnalystAgent
-from dalal_agents.agents.analysts.technical    import TechnicalAnalystAgent
+from dalal_agents.agents.analysts.news import NewsAnalystAgent
+from dalal_agents.agents.analysts.sentiment import SentimentAnalystAgent
+from dalal_agents.agents.analysts.technical import TechnicalAnalystAgent
 
 _console = Console()
 logger = logging.getLogger("dalal_agents.agents")
 
 _SIGNAL_STYLE: dict[str, str] = {
-    "STRONG_BUY":  "bold green",
-    "BUY":         "green",
-    "HOLD":        "yellow",
-    "SELL":        "red",
+    "STRONG_BUY": "bold green",
+    "BUY": "green",
+    "HOLD": "yellow",
+    "SELL": "red",
     "STRONG_SELL": "bold red",
 }
 
@@ -41,24 +41,25 @@ class AnalystTeam:
         reddit_creds: Optional[dict] = None,
         on_agent_done=None,
     ):
-        self.technical    = TechnicalAnalystAgent(llm=llm)
-        self.sentiment    = SentimentAnalystAgent(llm=llm, newsapi_key=newsapi_key,
-                                                  reddit_creds=reddit_creds)
-        self.news         = NewsAnalystAgent(llm=llm, newsapi_key=newsapi_key)
+        self.technical = TechnicalAnalystAgent(llm=llm)
+        self.sentiment = SentimentAnalystAgent(
+            llm=llm, newsapi_key=newsapi_key, reddit_creds=reddit_creds
+        )
+        self.news = NewsAnalystAgent(llm=llm, newsapi_key=newsapi_key)
         self.fundamentals = FundamentalsAnalystAgent(llm=llm)
         self._on_agent_done = on_agent_done
 
     async def run(self, state: TradingState) -> TradingState:
         agents = [
-            ("Technical",    "technical_report",    self.technical),
-            ("Sentiment",    "sentiment_report",    self.sentiment),
-            ("News",         "news_report",         self.news),
+            ("Technical", "technical_report", self.technical),
+            ("Sentiment", "sentiment_report", self.sentiment),
+            ("News", "news_report", self.news),
             ("Fundamentals", "fundamentals_report", self.fundamentals),
         ]
         on_done = self._on_agent_done
 
         _status: dict[str, tuple] = {n: ("pending", None, None) for n, _, _ in agents}
-        _errors: dict[str, str]   = {}
+        _errors: dict[str, str] = {}
 
         def _make_table() -> Table:
             tbl = Table(
@@ -69,10 +70,10 @@ class AnalystTeam:
                 show_footer=False,
                 padding=(0, 1),
             )
-            tbl.add_column("Agent",      style="bold white", min_width=20)
-            tbl.add_column("Signal",     min_width=12)
+            tbl.add_column("Agent", style="bold white", min_width=20)
+            tbl.add_column("Signal", min_width=12)
             tbl.add_column("Conviction", justify="center", min_width=10)
-            tbl.add_column("Status",     min_width=14)
+            tbl.add_column("Status", min_width=14)
 
             for name, _, _ in agents:
                 status, signal, conviction = _status[name]

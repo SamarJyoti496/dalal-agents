@@ -10,8 +10,7 @@ def _check_lookahead(as_of_date: date) -> None:
     today = date.today()
     if as_of_date > today:
         raise ValueError(
-            f"Look-ahead bias prevented: requested data for {as_of_date} "
-            f"but today is {today}."
+            f"Look-ahead bias prevented: requested data for {as_of_date} " f"but today is {today}."
         )
 
 

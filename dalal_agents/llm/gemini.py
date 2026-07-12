@@ -5,6 +5,7 @@ import json
 from typing import Any, Optional
 
 from google import genai
+from google.genai import types
 
 from dalal_agents.config import DEFAULT_GEMINI_MODEL, GEMINI_API_KEY
 from dalal_agents.llm.base import LLMResponse
@@ -28,6 +29,7 @@ class GeminiClient:
     @staticmethod
     def _to_gemini_tools(tools: list[dict]):
         from google.genai import types
+
         decls = [
             types.FunctionDeclaration(
                 name=t["name"],
@@ -50,7 +52,6 @@ class GeminiClient:
         return mapping
 
     def _to_gemini_contents(self, messages: list[dict]):
-        from google.genai import types
 
         id_to_name = self._build_id_name_map(messages)
         contents = []
@@ -70,10 +71,12 @@ class GeminiClient:
                     if btype == "text" and block.get("text"):
                         parts.append(types.Part.from_text(text=block["text"]))
                     elif btype == "tool_use":
-                        parts.append(types.Part.from_function_call(
-                            name=block["name"],
-                            args=block.get("input") or {},
-                        ))
+                        parts.append(
+                            types.Part.from_function_call(
+                                name=block["name"],
+                                args=block.get("input") or {},
+                            )
+                        )
                     elif btype == "tool_result":
                         fn_name = id_to_name.get(block["tool_use_id"], "unknown_tool")
                         raw = block.get("content", "{}")
@@ -81,10 +84,12 @@ class GeminiClient:
                             response_data = json.loads(raw) if isinstance(raw, str) else raw
                         except (json.JSONDecodeError, TypeError):
                             response_data = {"result": str(raw)}
-                        parts.append(types.Part.from_function_response(
-                            name=fn_name,
-                            response=response_data,
-                        ))
+                        parts.append(
+                            types.Part.from_function_response(
+                                name=fn_name,
+                                response=response_data,
+                            )
+                        )
 
             if parts:
                 contents.append(types.Content(role=role, parts=parts))
@@ -131,11 +136,13 @@ class GeminiClient:
                     text = part.text
                 fc = getattr(part, "function_call", None)
                 if fc is not None:
-                    tool_calls.append({
-                        "id": f"gemini_{fc.name}_{i}",
-                        "name": fc.name,
-                        "input": dict(fc.args) if fc.args else {},
-                    })
+                    tool_calls.append(
+                        {
+                            "id": f"gemini_{fc.name}_{i}",
+                            "name": fc.name,
+                            "input": dict(fc.args) if fc.args else {},
+                        }
+                    )
 
         usage = getattr(response, "usage_metadata", None)
         resp = LLMResponse(

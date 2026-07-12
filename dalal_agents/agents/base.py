@@ -68,14 +68,14 @@ class BaseAgent(ABC):
         ]
 
     @staticmethod
-    def _format_assistant_tool_use(
-        text: Optional[str], tool_calls: list[dict]
-    ) -> list[dict]:
+    def _format_assistant_tool_use(text: Optional[str], tool_calls: list[dict]) -> list[dict]:
         blocks: list[dict] = []
         if text:
             blocks.append({"type": "text", "text": text})
         for tc in tool_calls:
-            blocks.append({"type": "tool_use", "id": tc["id"], "name": tc["name"], "input": tc["input"]})
+            blocks.append(
+                {"type": "tool_use", "id": tc["id"], "name": tc["name"], "input": tc["input"]}
+            )
         return blocks
 
     @staticmethod
@@ -112,15 +112,15 @@ class BaseAgent(ABC):
 
     async def run(self, state: TradingState) -> BaseModel:
         name = self.__class__.__name__
-        messages: list[dict] = [
-            {"role": "user", "content": self._build_user_message(state)}
-        ]
+        messages: list[dict] = [{"role": "user", "content": self._build_user_message(state)}]
         tool_specs = self._as_anthropic_tool_specs()
         accumulated_calls: list[ToolCall] = []
         last_text = ""
 
         for _iteration in range(MAX_TOOL_ITERATIONS):
-            logger.debug("%s iteration %d/%d: calling LLM", name, _iteration + 1, MAX_TOOL_ITERATIONS)
+            logger.debug(
+                "%s iteration %d/%d: calling LLM", name, _iteration + 1, MAX_TOOL_ITERATIONS
+            )
 
             try:
                 response = await self.llm.call(
@@ -140,28 +140,38 @@ class BaseAgent(ABC):
 
             if response.tool_calls:
                 logger.debug(
-                    "%s iteration %d: called tools %s", name, _iteration + 1,
+                    "%s iteration %d: called tools %s",
+                    name,
+                    _iteration + 1,
                     [tc["name"] for tc in response.tool_calls],
                 )
-                messages.append({
-                    "role": "assistant",
-                    "content": self._format_assistant_tool_use(response.text, response.tool_calls),
-                })
+                messages.append(
+                    {
+                        "role": "assistant",
+                        "content": self._format_assistant_tool_use(
+                            response.text, response.tool_calls
+                        ),
+                    }
+                )
                 results = await self._execute_tools(response.tool_calls)
 
                 result_by_id = {r["tool_use_id"]: r["result"] for r in results}
                 for tc in response.tool_calls:
                     raw = result_by_id.get(tc["id"], {})
-                    accumulated_calls.append(ToolCall(
-                        tool_name=tc["name"],
-                        arguments=tc["input"],
-                        result_summary=json.dumps(raw, default=str)[:500],
-                    ))
+                    accumulated_calls.append(
+                        ToolCall(
+                            tool_name=tc["name"],
+                            arguments=tc["input"],
+                            result_summary=json.dumps(raw, default=str)[:500],
+                        )
+                    )
 
-                messages.append({
-                    "role": "user",
-                    "content": self._format_tool_results(results),
-                })
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": self._format_tool_results(results),
+                    }
+                )
                 continue
 
             text = response.text or ""
@@ -171,17 +181,21 @@ class BaseAgent(ABC):
             if not json_match:
                 logger.debug(
                     "%s iteration %d: no ```json fence in response, retrying. Raw text:\n%s",
-                    name, _iteration + 1, text[:2000],
+                    name,
+                    _iteration + 1,
+                    text[:2000],
                 )
                 messages.append({"role": "assistant", "content": text})
-                messages.append({
-                    "role": "user",
-                    "content": (
-                        f"Good analysis. Now output a complete {self.output_schema.__name__} "
-                        "as valid JSON inside a ```json\\n...\\n``` fence. "
-                        "No extra text outside the fence."
-                    ),
-                })
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Good analysis. Now output a complete {self.output_schema.__name__} "
+                            "as valid JSON inside a ```json\\n...\\n``` fence. "
+                            "No extra text outside the fence."
+                        ),
+                    }
+                )
                 continue
 
             try:
@@ -189,9 +203,14 @@ class BaseAgent(ABC):
             except json.JSONDecodeError as exc:
                 logger.error(
                     "%s iteration %d: malformed JSON: %s\n%s",
-                    name, _iteration + 1, exc, json_match.group(1)[:2000],
+                    name,
+                    _iteration + 1,
+                    exc,
+                    json_match.group(1)[:2000],
                 )
-                raise RuntimeError(f"LLM produced malformed JSON: {exc}\n\n{json_match.group(1)}") from exc
+                raise RuntimeError(
+                    f"LLM produced malformed JSON: {exc}\n\n{json_match.group(1)}"
+                ) from exc
 
             if isinstance(data, dict) and len(data) == 1:
                 only_key = next(iter(data))
@@ -219,25 +238,31 @@ class BaseAgent(ABC):
                     raise
                 logger.debug(
                     "%s iteration %d: validation errors, retrying:\n%s",
-                    name, _iteration + 1, "\n".join(problems),
+                    name,
+                    _iteration + 1,
+                    "\n".join(problems),
                 )
                 messages.append({"role": "assistant", "content": text})
-                messages.append({
-                    "role": "user",
-                    "content": (
-                        f"Your JSON had validation errors:\n" + "\n".join(problems) + "\n\n"
-                        "Rules:\n"
-                        "  • signal must be exactly one of: STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL\n"
-                        "  • conviction must be an integer 1–10 (not a word like 'Low')\n"
-                        f"Output the corrected {self.output_schema.__name__} inside a "
-                        "```json\\n...\\n``` fence. No extra text outside the fence."
-                    ),
-                })
+                messages.append(
+                    {
+                        "role": "user",
+                        "content": (
+                            f"Your JSON had validation errors:\n" + "\n".join(problems) + "\n\n"
+                            "Rules:\n"
+                            "  • signal must be exactly one of: STRONG_BUY, BUY, HOLD, SELL, STRONG_SELL\n"
+                            "  • conviction must be an integer 1–10 (not a word like 'Low')\n"
+                            f"Output the corrected {self.output_schema.__name__} inside a "
+                            "```json\\n...\\n``` fence. No extra text outside the fence."
+                        ),
+                    }
+                )
                 continue
 
         logger.error(
             "%s exhausted %d iterations. Last raw response:\n%s",
-            name, MAX_TOOL_ITERATIONS, last_text[:2000],
+            name,
+            MAX_TOOL_ITERATIONS,
+            last_text[:2000],
         )
         raise RuntimeError(
             f"{name} exhausted {MAX_TOOL_ITERATIONS} iterations "

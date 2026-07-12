@@ -29,12 +29,12 @@ def get_technical_indicators(
     macd_signal_str = "neutral"
     if macd_df is not None and not macd_df.empty and len(macd_df) >= 2:
         macd_col = next((c for c in macd_df.columns if c.startswith("MACD_")), None)
-        sig_col  = next((c for c in macd_df.columns if c.startswith("MACDs_")), None)
+        sig_col = next((c for c in macd_df.columns if c.startswith("MACDs_")), None)
         if macd_col and sig_col:
             m_today = macd_df[macd_col].iloc[-1]
             s_today = macd_df[sig_col].iloc[-1]
-            m_prev  = macd_df[macd_col].iloc[-2]
-            s_prev  = macd_df[sig_col].iloc[-2]
+            m_prev = macd_df[macd_col].iloc[-2]
+            s_prev = macd_df[sig_col].iloc[-2]
             if pd.notna(m_today) and pd.notna(s_today):
                 if m_prev <= s_prev and m_today > s_today:
                     macd_signal_str = "bullish_crossover"

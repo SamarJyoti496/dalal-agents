@@ -74,15 +74,17 @@ class NewsAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "company_name":  {"type": "string",  "description": "Company name or macro query string."},
-                        "as_of_date":    {"type": "string",  "format": "date"},
+                        "company_name": {
+                            "type": "string",
+                            "description": "Company name or macro query string.",
+                        },
+                        "as_of_date": {"type": "string", "format": "date"},
                         "lookback_days": {"type": "integer", "default": 7},
                     },
                     "required": ["company_name", "as_of_date"],
                 },
                 fn=lambda company_name, as_of_date, lookback_days=7: get_india_stock_news(
-                    company_name, date.fromisoformat(as_of_date),
-                    int(lookback_days), newsapi_key
+                    company_name, date.fromisoformat(as_of_date), int(lookback_days), newsapi_key
                 ),
             ),
             ToolDefinition(
@@ -96,8 +98,11 @@ class NewsAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "query":         {"type": "string",  "description": "Search query, e.g. company name or macro topic."},
-                        "as_of_date":    {"type": "string",  "format": "date"},
+                        "query": {
+                            "type": "string",
+                            "description": "Search query, e.g. company name or macro topic.",
+                        },
+                        "as_of_date": {"type": "string", "format": "date"},
                         "lookback_days": {"type": "integer", "default": 7},
                     },
                     "required": ["query", "as_of_date"],
@@ -116,8 +121,8 @@ class NewsAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "ticker":           {"type": "string",  "description": "NSE ticker without suffix."},
-                        "as_of_date":       {"type": "string",  "format": "date"},
+                        "ticker": {"type": "string", "description": "NSE ticker without suffix."},
+                        "as_of_date": {"type": "string", "format": "date"},
                         "lookforward_days": {"type": "integer", "default": 45},
                     },
                     "required": ["ticker", "as_of_date"],
@@ -164,10 +169,10 @@ class NewsAnalystAgent(BaseAgent):
             + (
                 f"5. Call `get_india_stock_news` with company_name=`{state.ticker}` "
                 f"and as_of_date=`{state.analysis_date}` for additional coverage.\n"
-                if self._newsapi_key else
-                "5. Skip NewsAPI — key not configured.\n"
-            ) +
-            "6. From all sources, assess:\n"
+                if self._newsapi_key
+                else "5. Skip NewsAPI — key not configured.\n"
+            )
+            + "6. From all sources, assess:\n"
             "   - rbi_stance: hawkish | dovish | neutral (or null if no RBI news)\n"
             "   - budget_impact: any Budget-related tailwinds or headwinds (or null)\n"
             "   - sebi_news: any SEBI regulatory actions (or null)\n"

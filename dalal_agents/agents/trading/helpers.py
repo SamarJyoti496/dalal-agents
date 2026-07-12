@@ -65,13 +65,12 @@ def _research_debate_summary(state: TradingState) -> str:
     if rd.turns and rd.winning_stance:
         for turn in reversed(rd.turns):
             if turn.stance != rd.winning_stance:
-                losing_arg = f"\n  Strongest dissenting argument:\n  \"{turn.argument[:300]}...\""
+                losing_arg = f'\n  Strongest dissenting argument:\n  "{turn.argument[:300]}..."'
                 break
     return (
         f"  Winner:    {rd.winning_stance}  |  Consensus signal: {rd.consensus_signal}\n"
         f"  Verdict:   {rd.facilitator_verdict}\n"
-        f"  Key risks: {'; '.join(rd.key_risks[:3])}"
-        + losing_arg
+        f"  Key risks: {'; '.join(rd.key_risks[:3])}" + losing_arg
     )
 
 

@@ -17,16 +17,18 @@ def _nse_get(path: str, params: dict | None = None) -> dict | list:
     browser-like cookies first.  path must start with "/api/".
     """
     session = requests.Session()
-    session.headers.update({
-        "User-Agent": (
-            "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-            "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/124.0.0.0 Safari/537.36"
-        ),
-        "Accept": "application/json, text/plain, */*",
-        "Accept-Language": "en-US,en;q=0.9",
-        "Referer": "https://www.nseindia.com/",
-    })
+    session.headers.update(
+        {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/124.0.0.0 Safari/537.36"
+            ),
+            "Accept": "application/json, text/plain, */*",
+            "Accept-Language": "en-US,en;q=0.9",
+            "Referer": "https://www.nseindia.com/",
+        }
+    )
     # Seed cookies by hitting the homepage first
     session.get("https://www.nseindia.com", timeout=10)
     time.sleep(0.5)
@@ -43,42 +45,88 @@ def _nse_get(path: str, params: dict | None = None) -> dict | list:
 # Sector index map: NSE ticker → yfinance sector index symbol
 _SECTOR_INDEX: dict[str, str] = {
     # Banking
-    "HDFCBANK": "^NSEBANK", "ICICIBANK": "^NSEBANK", "KOTAKBANK": "^NSEBANK",
-    "SBIN": "^NSEBANK", "AXISBANK": "^NSEBANK", "BANKBARODA": "^NSEBANK",
-    "INDUSINDBK": "^NSEBANK", "FEDERALBNK": "^NSEBANK", "IDFCFIRSTB": "^NSEBANK",
-    "AUBANK": "^NSEBANK", "CSBBANK": "^NSEBANK",
+    "HDFCBANK": "^NSEBANK",
+    "ICICIBANK": "^NSEBANK",
+    "KOTAKBANK": "^NSEBANK",
+    "SBIN": "^NSEBANK",
+    "AXISBANK": "^NSEBANK",
+    "BANKBARODA": "^NSEBANK",
+    "INDUSINDBK": "^NSEBANK",
+    "FEDERALBNK": "^NSEBANK",
+    "IDFCFIRSTB": "^NSEBANK",
+    "AUBANK": "^NSEBANK",
+    "CSBBANK": "^NSEBANK",
     # IT / Technology
-    "TCS": "^CNXIT", "INFY": "^CNXIT", "WIPRO": "^CNXIT", "HCLTECH": "^CNXIT",
-    "TECHM": "^CNXIT", "LTIM": "^CNXIT", "MPHASIS": "^CNXIT", "PERSISTENT": "^CNXIT",
-    "COFORGE": "^CNXIT", "OFSS": "^CNXIT",
+    "TCS": "^CNXIT",
+    "INFY": "^CNXIT",
+    "WIPRO": "^CNXIT",
+    "HCLTECH": "^CNXIT",
+    "TECHM": "^CNXIT",
+    "LTIM": "^CNXIT",
+    "MPHASIS": "^CNXIT",
+    "PERSISTENT": "^CNXIT",
+    "COFORGE": "^CNXIT",
+    "OFSS": "^CNXIT",
     # Auto
-    "MARUTI": "^CNXAUTO", "M&M": "^CNXAUTO", "TATAMOTORS": "^CNXAUTO",
-    "BAJAJ-AUTO": "^CNXAUTO", "EICHERMOT": "^CNXAUTO", "HEROMOTOCO": "^CNXAUTO",
-    "TVSMOTOR": "^CNXAUTO", "MOTHERSON": "^CNXAUTO",
+    "MARUTI": "^CNXAUTO",
+    "M&M": "^CNXAUTO",
+    "TATAMOTORS": "^CNXAUTO",
+    "BAJAJ-AUTO": "^CNXAUTO",
+    "EICHERMOT": "^CNXAUTO",
+    "HEROMOTOCO": "^CNXAUTO",
+    "TVSMOTOR": "^CNXAUTO",
+    "MOTHERSON": "^CNXAUTO",
     # Pharma
-    "SUNPHARMA": "^CNXPHARMA", "DRREDDY": "^CNXPHARMA", "CIPLA": "^CNXPHARMA",
-    "DIVISLAB": "^CNXPHARMA", "LUPIN": "^CNXPHARMA", "AUROPHARMA": "^CNXPHARMA",
-    "TORNTPHARM": "^CNXPHARMA", "ALKEM": "^CNXPHARMA",
+    "SUNPHARMA": "^CNXPHARMA",
+    "DRREDDY": "^CNXPHARMA",
+    "CIPLA": "^CNXPHARMA",
+    "DIVISLAB": "^CNXPHARMA",
+    "LUPIN": "^CNXPHARMA",
+    "AUROPHARMA": "^CNXPHARMA",
+    "TORNTPHARM": "^CNXPHARMA",
+    "ALKEM": "^CNXPHARMA",
     # FMCG
-    "HINDUNILVR": "^CNXFMCG", "ITC": "^CNXFMCG", "NESTLEIND": "^CNXFMCG",
-    "BRITANNIA": "^CNXFMCG", "DABUR": "^CNXFMCG", "MARICO": "^CNXFMCG",
-    "COLPAL": "^CNXFMCG", "GODREJCP": "^CNXFMCG",
+    "HINDUNILVR": "^CNXFMCG",
+    "ITC": "^CNXFMCG",
+    "NESTLEIND": "^CNXFMCG",
+    "BRITANNIA": "^CNXFMCG",
+    "DABUR": "^CNXFMCG",
+    "MARICO": "^CNXFMCG",
+    "COLPAL": "^CNXFMCG",
+    "GODREJCP": "^CNXFMCG",
     # Energy / Oil & Gas
-    "RELIANCE": "^CNXENERGY", "ONGC": "^CNXENERGY", "BPCL": "^CNXENERGY",
-    "HPCL": "^CNXENERGY", "IOC": "^CNXENERGY", "GAIL": "^CNXENERGY",
-    "PETRONET": "^CNXENERGY", "OIL": "^CNXENERGY",
+    "RELIANCE": "^CNXENERGY",
+    "ONGC": "^CNXENERGY",
+    "BPCL": "^CNXENERGY",
+    "HPCL": "^CNXENERGY",
+    "IOC": "^CNXENERGY",
+    "GAIL": "^CNXENERGY",
+    "PETRONET": "^CNXENERGY",
+    "OIL": "^CNXENERGY",
     # Metals
-    "TATASTEEL": "^CNXMETAL", "HINDALCO": "^CNXMETAL", "JSWSTEEL": "^CNXMETAL",
-    "VEDL": "^CNXMETAL", "SAIL": "^CNXMETAL", "NMDC": "^CNXMETAL",
+    "TATASTEEL": "^CNXMETAL",
+    "HINDALCO": "^CNXMETAL",
+    "JSWSTEEL": "^CNXMETAL",
+    "VEDL": "^CNXMETAL",
+    "SAIL": "^CNXMETAL",
+    "NMDC": "^CNXMETAL",
     "NATIONALUM": "^CNXMETAL",
     # Financial Services (non-bank)
-    "BAJFINANCE": "^CNXFINANCE", "BAJAJFINSV": "^CNXFINANCE",
-    "HDFCLIFE": "^CNXFINANCE", "SBILIFE": "^CNXFINANCE",
-    "ICICIPRULI": "^CNXFINANCE", "CHOLAFIN": "^CNXFINANCE",
-    "MUTHOOTFIN": "^CNXFINANCE", "LICHSGFIN": "^CNXFINANCE",
+    "BAJFINANCE": "^CNXFINANCE",
+    "BAJAJFINSV": "^CNXFINANCE",
+    "HDFCLIFE": "^CNXFINANCE",
+    "SBILIFE": "^CNXFINANCE",
+    "ICICIPRULI": "^CNXFINANCE",
+    "CHOLAFIN": "^CNXFINANCE",
+    "MUTHOOTFIN": "^CNXFINANCE",
+    "LICHSGFIN": "^CNXFINANCE",
     # Infrastructure / Cement
-    "LARSEN": "^CNXINFRA", "ULTRACEMCO": "^CNXINFRA", "ADANIPORTS": "^CNXINFRA",
-    "SHREECEM": "^CNXINFRA", "AMBUJACEMENT": "^CNXINFRA", "ACC": "^CNXINFRA",
+    "LARSEN": "^CNXINFRA",
+    "ULTRACEMCO": "^CNXINFRA",
+    "ADANIPORTS": "^CNXINFRA",
+    "SHREECEM": "^CNXINFRA",
+    "AMBUJACEMENT": "^CNXINFRA",
+    "ACC": "^CNXINFRA",
     "GMRINFRA": "^CNXINFRA",
 }
 
@@ -91,11 +139,15 @@ def get_ohlcv(
     _check_lookahead(as_of_date)
 
     start = as_of_date - timedelta(days=lookback_days)
-    end = as_of_date + timedelta(days=1)   # yfinance end is exclusive
+    end = as_of_date + timedelta(days=1)  # yfinance end is exclusive
 
     df = yf.download(
-        ticker_symbol, start=start, end=end,
-        auto_adjust=True, progress=False, multi_level_index=False,
+        ticker_symbol,
+        start=start,
+        end=end,
+        auto_adjust=True,
+        progress=False,
+        multi_level_index=False,
     )
     df = _flatten_columns(df)
     df = _strip_tz(df)
@@ -121,7 +173,9 @@ def get_india_vix(as_of_date: date) -> Optional[float]:
             "^INDIAVIX",
             start=as_of_date - timedelta(days=10),
             end=as_of_date + timedelta(days=1),
-            auto_adjust=False, progress=False, multi_level_index=False,
+            auto_adjust=False,
+            progress=False,
+            multi_level_index=False,
         )
         df = _flatten_columns(df)
         df = _strip_tz(df)
@@ -141,7 +195,9 @@ def get_nifty_context(as_of_date: date) -> dict:
         "^NSEI",
         start=as_of_date - timedelta(days=120),
         end=as_of_date + timedelta(days=1),
-        auto_adjust=True, progress=False, multi_level_index=False,
+        auto_adjust=True,
+        progress=False,
+        multi_level_index=False,
     )
     df = _flatten_columns(df)
     df = _strip_tz(df)
@@ -196,16 +252,16 @@ def get_sector_index_context(ticker: str, as_of_date: date) -> dict:
 
     sector_sym = _SECTOR_INDEX.get(ticker.upper(), "^NSEI")
     sector_name = {
-        "^NSEBANK":   "Nifty Bank",
-        "^CNXIT":     "Nifty IT",
-        "^CNXAUTO":   "Nifty Auto",
+        "^NSEBANK": "Nifty Bank",
+        "^CNXIT": "Nifty IT",
+        "^CNXAUTO": "Nifty Auto",
         "^CNXPHARMA": "Nifty Pharma",
-        "^CNXFMCG":   "Nifty FMCG",
-        "^CNXENERGY":  "Nifty Energy",
-        "^CNXMETAL":  "Nifty Metal",
+        "^CNXFMCG": "Nifty FMCG",
+        "^CNXENERGY": "Nifty Energy",
+        "^CNXMETAL": "Nifty Metal",
         "^CNXFINANCE": "Nifty Financial Services",
-        "^CNXINFRA":  "Nifty Infrastructure",
-        "^NSEI":      "Nifty 50",
+        "^CNXINFRA": "Nifty Infrastructure",
+        "^NSEI": "Nifty 50",
     }.get(sector_sym, sector_sym)
 
     try:
@@ -213,7 +269,9 @@ def get_sector_index_context(ticker: str, as_of_date: date) -> dict:
             sector_sym,
             start=as_of_date - timedelta(days=120),
             end=as_of_date + timedelta(days=1),
-            auto_adjust=True, progress=False, multi_level_index=False,
+            auto_adjust=True,
+            progress=False,
+            multi_level_index=False,
         )
         df = _flatten_columns(df)
         df = _strip_tz(df)
@@ -258,16 +316,16 @@ def get_corporate_actions(ticker: str, as_of_date: date, lookforward_days: int =
     _check_lookahead(as_of_date)
 
     from_date = (as_of_date - timedelta(days=10)).strftime("%d-%b-%Y")
-    to_date   = (as_of_date + timedelta(days=lookforward_days)).strftime("%d-%b-%Y")
+    to_date = (as_of_date + timedelta(days=lookforward_days)).strftime("%d-%b-%Y")
 
     try:
         data = _nse_get(
             "/api/corporates-corporateActions",
             params={
-                "index":     "equities",
+                "index": "equities",
                 "from_date": from_date,
-                "to_date":   to_date,
-                "symbol":    ticker.upper(),
+                "to_date": to_date,
+                "symbol": ticker.upper(),
             },
         )
     except Exception as exc:
@@ -281,12 +339,16 @@ def get_corporate_actions(ticker: str, as_of_date: date, lookforward_days: int =
         sym = (row.get("symbol") or row.get("Symbol") or "").upper()
         if sym != ticker.upper():
             continue
-        results.append({
-            "purpose":    row.get("purpose") or row.get("subject") or "",
-            "ex_date":    row.get("exDate") or row.get("ex_date") or "",
-            "record_date": row.get("recDate") or row.get("record_date") or "",
-            "bc_start":   row.get("bcStartDate") or "",
-            "bc_end":     row.get("bcEndDate") or "",
-        })
+        results.append(
+            {
+                "purpose": row.get("purpose") or row.get("subject") or "",
+                "ex_date": row.get("exDate") or row.get("ex_date") or "",
+                "record_date": row.get("recDate") or row.get("record_date") or "",
+                "bc_start": row.get("bcStartDate") or "",
+                "bc_end": row.get("bcEndDate") or "",
+            }
+        )
 
-    return results if results else [{"info": f"No corporate actions found for {ticker} in the window"}]
+    return (
+        results if results else [{"info": f"No corporate actions found for {ticker} in the window"}]
+    )

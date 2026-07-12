@@ -4,6 +4,7 @@ pipeline/db.py — SQLite persistence for DalalAgents.
 Schema (decisions, full_states, checkpoints, backtest_trades) plus the
 read/write helpers used by run_pipeline and run_backtest.
 """
+
 from __future__ import annotations
 
 import sqlite3
@@ -81,7 +82,7 @@ def init_db(db_path: Path = DB_PATH) -> None:
 def persist_state(state: TradingState, db_path: Path = DB_PATH) -> None:
     if state.final_decision is None:
         return
-    fd         = state.final_decision
+    fd = state.final_decision
     state_json = state.model_dump_json()
 
     con = sqlite3.connect(db_path)

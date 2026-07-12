@@ -14,14 +14,16 @@ def _ohlcv_tail(ticker_symbol: str, as_of_date: str, rows: int = 5) -> list[dict
     tail = df.tail(rows)
     result = []
     for idx, row in tail.iterrows():
-        result.append({
-            "date":   idx.strftime("%Y-%m-%d"),
-            "open":   round(float(row["Open"]),  2),
-            "high":   round(float(row["High"]),  2),
-            "low":    round(float(row["Low"]),   2),
-            "close":  round(float(row["Close"]), 2),
-            "volume": int(row["Volume"]),
-        })
+        result.append(
+            {
+                "date": idx.strftime("%Y-%m-%d"),
+                "open": round(float(row["Open"]), 2),
+                "high": round(float(row["High"]), 2),
+                "low": round(float(row["Low"]), 2),
+                "close": round(float(row["Close"]), 2),
+                "volume": int(row["Volume"]),
+            }
+        )
     return result
 
 
@@ -76,8 +78,11 @@ class FundamentalsAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "ticker":     {"type": "string",  "description": "Ticker without suffix, e.g. RELIANCE."},
-                        "as_of_date": {"type": "string",  "format": "date"},
+                        "ticker": {
+                            "type": "string",
+                            "description": "Ticker without suffix, e.g. RELIANCE.",
+                        },
+                        "as_of_date": {"type": "string", "format": "date"},
                     },
                     "required": ["ticker", "as_of_date"],
                 },
@@ -94,8 +99,8 @@ class FundamentalsAnalystAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "ticker_symbol": {"type": "string",  "description": "e.g. RELIANCE.NS"},
-                        "as_of_date":    {"type": "string",  "format": "date"},
+                        "ticker_symbol": {"type": "string", "description": "e.g. RELIANCE.NS"},
+                        "as_of_date": {"type": "string", "format": "date"},
                     },
                     "required": ["ticker_symbol", "as_of_date"],
                 },

@@ -56,9 +56,8 @@ class TraderAgent(BaseAgent):
                 input_schema={
                     "type": "object",
                     "properties": {
-                        "ticker_symbol": {"type": "string",
-                                          "description": "e.g. HDFCBANK.NS"},
-                        "as_of_date":    {"type": "string", "format": "date"},
+                        "ticker_symbol": {"type": "string", "description": "e.g. HDFCBANK.NS"},
+                        "as_of_date": {"type": "string", "format": "date"},
                     },
                     "required": ["ticker_symbol", "as_of_date"],
                 },

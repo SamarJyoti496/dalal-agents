@@ -34,19 +34,19 @@ def get_screener_fundamentals(ticker: str, as_of_date: date) -> dict:
     soup = BeautifulSoup(resp.text, "html.parser")
 
     label_map = {
-        "Stock P/E":          "pe_ratio",
-        "Price to Book":      "pb_ratio",
-        "ROCE":               "roce",
-        "ROE":                "roe",
-        "Debt to equity":     "debt_to_equity",
-        "Promoter Holding":   "promoter_holding_pct",
+        "Stock P/E": "pe_ratio",
+        "Price to Book": "pb_ratio",
+        "ROCE": "roce",
+        "ROE": "roe",
+        "Debt to equity": "debt_to_equity",
+        "Promoter Holding": "promoter_holding_pct",
         "Pledged percentage": "promoter_pledge_pct",
-        "FII":                "fii_holding_pct",
-        "DII":                "dii_holding_pct",
-        "Market Cap":         "market_cap_cr",
-        "Dividend Yield":     "dividend_yield",
-        "Current ratio":      "current_ratio",
-        "Interest Coverage":  "interest_coverage",
+        "FII": "fii_holding_pct",
+        "DII": "dii_holding_pct",
+        "Market Cap": "market_cap_cr",
+        "Dividend Yield": "dividend_yield",
+        "Current ratio": "current_ratio",
+        "Interest Coverage": "interest_coverage",
     }
 
     result: dict = {

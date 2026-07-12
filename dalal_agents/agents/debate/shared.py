@@ -23,9 +23,7 @@ def _format_transcript(transcript: DebateTranscript) -> str:
         return "(No previous turns — you are opening the debate.)"
     lines: list[str] = []
     for turn in transcript.turns:
-        lines.append(
-            f"\n--- Turn {turn.turn_number}: {turn.speaker} [{turn.stance}] ---"
-        )
+        lines.append(f"\n--- Turn {turn.turn_number}: {turn.speaker} [{turn.stance}] ---")
         lines.append(turn.argument)
         lines.append("Key Points:")
         for pt in turn.key_points:
@@ -122,9 +120,9 @@ async def run_facilitator(
     data = _extract_json(response.text or "")
 
     transcript.facilitator_verdict = data.get("facilitator_verdict")
-    transcript.winning_stance       = DebateStance(data["winning_stance"])
-    transcript.consensus_signal     = Signal(data["consensus_signal"])
-    transcript.key_risks            = data.get("key_risks", [])
-    transcript.key_opportunities    = data.get("key_opportunities", [])
+    transcript.winning_stance = DebateStance(data["winning_stance"])
+    transcript.consensus_signal = Signal(data["consensus_signal"])
+    transcript.key_risks = data.get("key_risks", [])
+    transcript.key_opportunities = data.get("key_opportunities", [])
 
     return transcript

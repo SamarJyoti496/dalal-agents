@@ -20,8 +20,9 @@ class OllamaClient(OpenAIClient):
 
     def __init__(self, model: str = DEFAULT_OLLAMA_MODEL):
         from openai import AsyncOpenAI
+
         self._client = AsyncOpenAI(
-            api_key="ollama",                               # Ollama ignores the key
+            api_key="ollama",  # Ollama ignores the key
             base_url=OLLAMA_BASE_URL or self._DEFAULT_BASE,
         )
         self.model = model

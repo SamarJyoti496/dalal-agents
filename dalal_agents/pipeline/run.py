@@ -3,6 +3,7 @@ pipeline/run.py — run_pipeline: wires Stage I (AnalystTeam + ResearchDebate) a
 Stage II (run_trading_stage) into a single entry-point with SQLite persistence
 and cache/checkpoint awareness.
 """
+
 from __future__ import annotations
 
 import time
@@ -72,8 +73,10 @@ async def run_pipeline(
             return
         _console.print()
         _console.rule(
-            Text(f"Stage {n}/3 — {label}  ·  {ticker} ({exchange.value}) {analysis_date}",
-                 style="bold cyan"),
+            Text(
+                f"Stage {n}/3 — {label}  ·  {ticker} ({exchange.value}) {analysis_date}",
+                style="bold cyan",
+            ),
             style="cyan",
         )
 
@@ -94,9 +97,7 @@ async def run_pipeline(
 
     # Checkpoint resume
     resumed_state, last_stage = (
-        load_checkpoint(ticker, analysis_date, db_path)
-        if resume_from_checkpoint
-        else (None, "")
+        load_checkpoint(ticker, analysis_date, db_path) if resume_from_checkpoint else (None, "")
     )
     if resumed_state and last_stage:
         state = resumed_state
@@ -131,7 +132,7 @@ async def run_pipeline(
         _cb("stage_done", stage="Analyst Team")
     else:
         _cb("stage_start", stage="Analyst Team")
-        _cb("stage_done",  stage="Analyst Team")
+        _cb("stage_done", stage="Analyst Team")
 
     # Research Debate
     if last_stage not in ("Research Debate", "Trading Stage"):
@@ -148,21 +149,23 @@ async def run_pipeline(
         save_checkpoint(state, "Research Debate", db_path)
         rd = state.research_debate
         _cb(
-            "stage_done", stage="Research Debate",
+            "stage_done",
+            stage="Research Debate",
             winner=str(rd.winning_stance) if rd else None,
             signal=str(rd.consensus_signal) if rd else None,
             summary=rd.facilitator_verdict if rd else None,
         )
     else:
         _cb("stage_start", stage="Research Debate")
-        _cb("stage_done",  stage="Research Debate")
+        _cb("stage_done", stage="Research Debate")
 
     # Trading Stage (4 visible sub-stages)
     _TRADING_SUB_STAGES = ("Trader", "Risk Debate", "Risk Assessment", "Fund Manager")
     if last_stage != "Trading Stage":
         _stage_rule(3, "Trading Stage")
         await run_trading_stage(
-            state, llm,
+            state,
+            llm,
             quiet=_quiet,
             memory_context=memory_context,
             progress_callback=_cb,
@@ -171,7 +174,7 @@ async def run_pipeline(
     else:
         for _sub in _TRADING_SUB_STAGES:
             _cb("stage_start", stage=_sub)
-            _cb("stage_done",  stage=_sub)
+            _cb("stage_done", stage=_sub)
 
     # Finalise, persist, and save memory
     elapsed = round(time.perf_counter() - t_start, 1)
@@ -180,9 +183,12 @@ async def run_pipeline(
         state.final_decision.total_tool_calls = sum(
             len(r.tool_calls)
             for r in (
-                state.technical_report, state.sentiment_report,
-                state.news_report, state.fundamentals_report,
-                state.trade_proposal, state.risk_assessment,
+                state.technical_report,
+                state.sentiment_report,
+                state.news_report,
+                state.fundamentals_report,
+                state.trade_proposal,
+                state.risk_assessment,
             )
             if r is not None
         )
@@ -190,5 +196,5 @@ async def run_pipeline(
             state.final_decision.total_llm_calls = llm.get_stats().get("calls", 0)
 
     persist_state(state, db_path)
-    save_decision(state)          # append to dalal_memory.md
+    save_decision(state)  # append to dalal_memory.md
     return state

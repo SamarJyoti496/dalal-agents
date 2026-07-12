@@ -11,6 +11,7 @@ class AnthropicClient:
 
     def __init__(self, model: str = DEFAULT_MODEL):
         from anthropic import AsyncAnthropic
+
         self._client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
         self.model = model
         self._calls = 0

@@ -7,14 +7,14 @@ _LLM = object
 
 
 def _build_risk_context(state: TradingState) -> str:
-    parts = [
-        f"STOCK: {state.ticker} ({state.exchange.value})  |  DATE: {state.analysis_date}"
-    ]
+    parts = [f"STOCK: {state.ticker} ({state.exchange.value})  |  DATE: {state.analysis_date}"]
 
     if state.research_debate:
         rd = state.research_debate
-        risks = "  • " + "\n  • ".join(rd.key_risks)         if rd.key_risks         else "None listed"
-        opps  = "  • " + "\n  • ".join(rd.key_opportunities) if rd.key_opportunities else "None listed"
+        risks = "  • " + "\n  • ".join(rd.key_risks) if rd.key_risks else "None listed"
+        opps = (
+            "  • " + "\n  • ".join(rd.key_opportunities) if rd.key_opportunities else "None listed"
+        )
         parts.append(
             f"\n[RESEARCH DEBATE VERDICT]\n"
             f"Winner: {rd.winning_stance}  |  Consensus signal: {rd.consensus_signal}\n"
@@ -94,29 +94,34 @@ Respond ONLY with a JSON object:
 class RiskDebate:
 
     def __init__(self, llm: _LLM, rounds: int = 1):
-        self.llm    = llm
+        self.llm = llm
         self.rounds = rounds
 
     async def run(self, state: TradingState) -> DebateTranscript:
-        context  = _build_risk_context(state)
-        topic    = (
+        context = _build_risk_context(state)
+        topic = (
             f"What position size and risk parameters should we use for {state.ticker} "
             f"({state.exchange.value}) as of {state.analysis_date}?"
         )
         transcript = DebateTranscript(topic=topic)
-        turn_num   = 1
+        turn_num = 1
 
         agents = [
-            ("Aggressive Risk Officer",   DebateStance.RISKY,   _RISKY_SYSTEM),
-            ("Balanced Risk Officer",     DebateStance.NEUTRAL,  _NEUTRAL_SYSTEM),
-            ("Conservative Risk Officer", DebateStance.SAFE,    _SAFE_SYSTEM),
+            ("Aggressive Risk Officer", DebateStance.RISKY, _RISKY_SYSTEM),
+            ("Balanced Risk Officer", DebateStance.NEUTRAL, _NEUTRAL_SYSTEM),
+            ("Conservative Risk Officer", DebateStance.SAFE, _SAFE_SYSTEM),
         ]
 
         for _ in range(self.rounds):
             for agent_name, stance, system_prompt in agents:
                 turn = await generate_debate_turn(
-                    self.llm, agent_name, stance,
-                    system_prompt, context, transcript, turn_num,
+                    self.llm,
+                    agent_name,
+                    stance,
+                    system_prompt,
+                    context,
+                    transcript,
+                    turn_num,
                 )
                 transcript.append(turn)
                 turn_num += 1

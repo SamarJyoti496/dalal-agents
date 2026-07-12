@@ -9,6 +9,7 @@ before making its call so it can factor in "what we decided last time
 and whether the thesis played out".  This is the same pattern used by
 TauricResearch/TradingAgents — institutional memory across runs.
 """
+
 from __future__ import annotations
 
 import datetime
@@ -40,7 +41,7 @@ def save_decision(state: "TradingState", memory_path: Path = MEMORY_PATH) -> Non
     ]
     if fd.dissenting_view:
         entry_lines.append(f"- **Dissent:** {fd.dissenting_view}")
-    entry_lines.append("")   # blank line between entries
+    entry_lines.append("")  # blank line between entries
 
     memory_path.parent.mkdir(parents=True, exist_ok=True)
     if not memory_path.exists():

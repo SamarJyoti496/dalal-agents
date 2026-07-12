@@ -12,6 +12,7 @@ class OpenAIClient:
 
     def __init__(self, model: str = "gpt-4o"):
         from openai import AsyncOpenAI
+
         self._client = AsyncOpenAI(api_key=OPENAI_API_KEY)
         self.model = model
         self._calls = 0
@@ -45,45 +46,60 @@ class OpenAIClient:
         oai: list[dict] = [{"role": "system", "content": system}]
 
         for msg in messages:
-            role    = msg["role"]
+            role = msg["role"]
             content = msg["content"]
 
             if isinstance(content, str):
                 oai.append({"role": role, "content": content})
                 continue
 
-            has_tool_use    = any(b.get("type") == "tool_use"    for b in content if isinstance(b, dict))
-            has_tool_result = any(b.get("type") == "tool_result" for b in content if isinstance(b, dict))
+            has_tool_use = any(b.get("type") == "tool_use" for b in content if isinstance(b, dict))
+            has_tool_result = any(
+                b.get("type") == "tool_result" for b in content if isinstance(b, dict)
+            )
 
             if has_tool_use:
-                texts = [b["text"] for b in content if isinstance(b, dict) and b.get("type") == "text" and b.get("text")]
+                texts = [
+                    b["text"]
+                    for b in content
+                    if isinstance(b, dict) and b.get("type") == "text" and b.get("text")
+                ]
                 calls = [
                     {
-                        "id":       b["id"],
-                        "type":     "function",
+                        "id": b["id"],
+                        "type": "function",
                         "function": {
-                            "name":      b["name"],
+                            "name": b["name"],
                             "arguments": json.dumps(b.get("input", {})),
                         },
                     }
-                    for b in content if isinstance(b, dict) and b.get("type") == "tool_use"
+                    for b in content
+                    if isinstance(b, dict) and b.get("type") == "tool_use"
                 ]
-                oai.append({
-                    "role":       "assistant",
-                    "content":    texts[0] if texts else None,
-                    "tool_calls": calls,
-                })
+                oai.append(
+                    {
+                        "role": "assistant",
+                        "content": texts[0] if texts else None,
+                        "tool_calls": calls,
+                    }
+                )
             elif has_tool_result:
                 for b in content:
                     if not isinstance(b, dict) or b.get("type") != "tool_result":
                         continue
-                    oai.append({
-                        "role":         "tool",
-                        "tool_call_id": b["tool_use_id"],
-                        "content":      b.get("content", ""),
-                    })
+                    oai.append(
+                        {
+                            "role": "tool",
+                            "tool_call_id": b["tool_use_id"],
+                            "content": b.get("content", ""),
+                        }
+                    )
             else:
-                text = " ".join(b.get("text", "") for b in content if isinstance(b, dict) and b.get("type") == "text")
+                text = " ".join(
+                    b.get("text", "")
+                    for b in content
+                    if isinstance(b, dict) and b.get("type") == "text"
+                )
                 oai.append({"role": role, "content": text})
 
         return oai
@@ -97,12 +113,12 @@ class OpenAIClient:
     ) -> LLMResponse:
         oai_messages = self._to_openai_messages(system, messages)
         kwargs: dict[str, Any] = {
-            "model":      self.model,
-            "messages":   oai_messages,
+            "model": self.model,
+            "messages": oai_messages,
             "max_tokens": max_tokens,
         }
         if tools:
-            kwargs["tools"]       = self._to_openai_tools(tools)
+            kwargs["tools"] = self._to_openai_tools(tools)
             kwargs["tool_choice"] = "auto"
 
         response = await self._client.chat.completions.create(**kwargs)
@@ -111,11 +127,13 @@ class OpenAIClient:
         tool_calls: list[dict] = []
         if msg.tool_calls:
             for tc in msg.tool_calls:
-                tool_calls.append({
-                    "id":    tc.id,
-                    "name":  tc.function.name,
-                    "input": json.loads(tc.function.arguments),
-                })
+                tool_calls.append(
+                    {
+                        "id": tc.id,
+                        "name": tc.function.name,
+                        "input": json.loads(tc.function.arguments),
+                    }
+                )
 
         usage = response.usage
         resp = LLMResponse(

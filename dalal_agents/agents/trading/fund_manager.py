@@ -68,8 +68,8 @@ class FundManagerAgent(BaseAgent):
         return (
             f"Make the final investment decision for **{state.ticker}** ({state.exchange}) "
             f"as of **{state.analysis_date}**.\n\n"
-            + prior_section +
-            f"\n=== STAGE I — ANALYST SIGNALS ===\n{_analyst_signal_table(state)}\n\n"
+            + prior_section
+            + f"\n=== STAGE I — ANALYST SIGNALS ===\n{_analyst_signal_table(state)}\n\n"
             f"=== RESEARCH DEBATE ===\n{_research_debate_summary(state)}\n\n"
             f"=== TRADER PROPOSAL ===\n{_trade_proposal_summary(state)}\n\n"
             f"=== RISK DEBATE ===\n{_risk_debate_summary(state)}\n\n"
@@ -82,7 +82,7 @@ class FundManagerAgent(BaseAgent):
             "A parent who knows nothing about investing should understand it.\n"
             "  - dissenting_view: find the strongest argument from the LOSING side "
             "of the research debate and summarise it in 1–2 sentences.\n"
-            f"  - ticker: \"{state.ticker}\"\n"
-            f"  - exchange: \"{state.exchange.value}\"\n"
-            f"  - as_of_date: \"{state.analysis_date}\""
+            f'  - ticker: "{state.ticker}"\n'
+            f'  - exchange: "{state.exchange.value}"\n'
+            f'  - as_of_date: "{state.analysis_date}"'
         )

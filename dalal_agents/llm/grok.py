@@ -14,6 +14,7 @@ class GrokClient(OpenAIClient):
 
     def __init__(self, model: str = DEFAULT_GROK_MODEL):
         from openai import AsyncOpenAI
+
         self._client = AsyncOpenAI(
             api_key=GROK_API_KEY,
             base_url=self._BASE_URL,

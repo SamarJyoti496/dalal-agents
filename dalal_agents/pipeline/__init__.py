@@ -7,6 +7,7 @@ Split across:
   calendar.py  get_nse_trading_days — real NSE trading calendar via Nifty 50
   backtest.py  run_backtest — historical simulation
 """
+
 from dalal_agents.pipeline.db import (
     DB_PATH,
     init_db,
@@ -42,14 +43,14 @@ if __name__ == "__main__":
     from dalal_agents.llm import AnthropicClient
 
     _console = Console()
-    llm   = AnthropicClient()
-    state = asyncio.run(
-        run_pipeline("RELIANCE", date(2024, 1, 15), llm)
-    )
+    llm = AnthropicClient()
+    state = asyncio.run(run_pipeline("RELIANCE", date(2024, 1, 15), llm))
 
     fd = state.final_decision
     if fd:
         _console.rule(Text("Final Decision", style="bold"), style="bright_white")
         _console.print(f"  Action: [bold]{fd.action}[/bold]  ·  {fd.ticker}  {fd.as_of_date}")
-        _console.print(f"  Entry ₹{fd.entry_price}  Target ₹{fd.target_price}  Stop ₹{fd.stop_loss}")
+        _console.print(
+            f"  Entry ₹{fd.entry_price}  Target ₹{fd.target_price}  Stop ₹{fd.stop_loss}"
+        )
         _console.print(f"  {fd.rationale}")

@@ -7,9 +7,7 @@ _LLM = object
 
 
 def _build_research_context(state: TradingState) -> str:
-    parts = [
-        f"STOCK: {state.ticker} ({state.exchange.value})  |  DATE: {state.analysis_date}"
-    ]
+    parts = [f"STOCK: {state.ticker} ({state.exchange.value})  |  DATE: {state.analysis_date}"]
 
     if state.technical_report:
         r = state.technical_report
@@ -111,29 +109,39 @@ Respond ONLY with a JSON object:
 class ResearchDebate:
 
     def __init__(self, llm: _LLM, rounds: int = 2):
-        self.llm    = llm
+        self.llm = llm
         self.rounds = rounds
 
     async def run(self, state: TradingState) -> DebateTranscript:
         context = _build_research_context(state)
-        topic   = (
+        topic = (
             f"Should we take a long position in {state.ticker} ({state.exchange.value}) "
             f"as of {state.analysis_date}?"
         )
         transcript = DebateTranscript(topic=topic)
-        turn_num   = 1
+        turn_num = 1
 
         for _ in range(self.rounds):
             bull_turn = await generate_debate_turn(
-                self.llm, "Bull Researcher", DebateStance.BULLISH,
-                _BULL_SYSTEM, context, transcript, turn_num,
+                self.llm,
+                "Bull Researcher",
+                DebateStance.BULLISH,
+                _BULL_SYSTEM,
+                context,
+                transcript,
+                turn_num,
             )
             transcript.append(bull_turn)
             turn_num += 1
 
             bear_turn = await generate_debate_turn(
-                self.llm, "Bear Researcher", DebateStance.BEARISH,
-                _BEAR_SYSTEM, context, transcript, turn_num,
+                self.llm,
+                "Bear Researcher",
+                DebateStance.BEARISH,
+                _BEAR_SYSTEM,
+                context,
+                transcript,
+                turn_num,
             )
             transcript.append(bear_turn)
             turn_num += 1

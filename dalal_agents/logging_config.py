@@ -6,6 +6,7 @@ text) is logged to a timestamped file so a failure like "exhausted 8
 iterations" can be diagnosed after the fact instead of just printing a
 one-line summary to the console.
 """
+
 from __future__ import annotations
 
 import logging
@@ -39,9 +40,9 @@ def setup_logging(run_label: str, level: Optional[int] = None) -> Path:
 
     fh = logging.FileHandler(log_file, encoding="utf-8")
     fh.setLevel(level)
-    fh.setFormatter(logging.Formatter(
-        "%(asctime)s %(levelname)-7s %(name)s: %(message)s", datefmt="%H:%M:%S"
-    ))
+    fh.setFormatter(
+        logging.Formatter("%(asctime)s %(levelname)-7s %(name)s: %(message)s", datefmt="%H:%M:%S")
+    )
     logger.addHandler(fh)
 
     return log_file
