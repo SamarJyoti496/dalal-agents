@@ -209,8 +209,6 @@ def update_display(
     )
 
     # Messages panel
-    # Newest first: if the panel isn't tall enough to fit everything, Rich crops
-    # from the bottom, so the most recent entries (now at the top) stay visible.
     _TYPE_COLOR = {"System": "dim cyan", "Agent": "green", "Error": "red"}
     lines = []
     for ts, mtype, content in reversed(list(mb.messages)[-30:]):
