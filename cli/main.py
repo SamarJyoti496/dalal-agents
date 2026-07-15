@@ -42,6 +42,7 @@ from dalal_agents.config import (
 )
 from dalal_agents.models import Exchange
 from dalal_agents.pipeline import run_pipeline
+from cli.mock import fake_pipeline
 
 console = Console(legacy_windows=False)
 
@@ -697,7 +698,7 @@ async def _run_analysis(sel: dict, *, mock: bool = False) -> None:
         update_display(layout, mb, ticker, sel["exchange"], date_str, provider, start_time)
 
         if mock:
-            state = await _fake_pipeline(ticker, date_str, sel["exchange"], cb)
+            state = await fake_pipeline(ticker, date_str, sel["exchange"], cb)
         else:
             state = await run_pipeline(
                 ticker=ticker,
