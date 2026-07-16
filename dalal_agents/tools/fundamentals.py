@@ -64,11 +64,38 @@ def get_screener_fundamentals(ticker: str, as_of_date: date) -> dict:
             continue
         val_span = li.find("span", class_=["number", "value"])
         if val_span:
-            raw = val_span.get_text(strip=True).replace(",", "").replace("%", "").strip()
+            raw = (
+                val_span.get_text(strip=True)
+                .replace(",", "")
+                .replace("%", "")
+                .replace("₹", "")
+                .replace("Cr.", "")
+                .strip()
+            )
             try:
                 result[label_map[label]] = float(raw)
             except ValueError:
                 result[label_map[label]] = None
+
+    shareholding_map = {
+        "Promoters": "promoter_holding_pct",
+        "FIIs": "fii_holding_pct",
+        "DIIs": "dii_holding_pct",
+    }
+    quarterly_shp = soup.find("div", id="quarterly-shp")
+    if quarterly_shp:
+        for row in quarterly_shp.find_all("tr"):
+            cells = row.find_all(["td", "th"])
+            if not cells:
+                continue
+            row_label = cells[0].get_text(strip=True).rstrip("+").strip()
+            if row_label not in shareholding_map:
+                continue
+            raw = cells[-1].get_text(strip=True).replace("%", "").replace(",", "").strip()
+            try:
+                result[shareholding_map[row_label]] = float(raw)
+            except ValueError:
+                result[shareholding_map[row_label]] = None
 
     for key in label_map.values():
         result.setdefault(key, None)
