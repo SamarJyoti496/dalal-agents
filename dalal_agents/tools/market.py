@@ -315,8 +315,8 @@ def get_corporate_actions(ticker: str, as_of_date: date, lookforward_days: int =
     """
     _check_lookahead(as_of_date)
 
-    from_date = (as_of_date - timedelta(days=10)).strftime("%d-%b-%Y")
-    to_date = (as_of_date + timedelta(days=lookforward_days)).strftime("%d-%b-%Y")
+    from_date = (as_of_date - timedelta(days=10)).strftime("%d-%m-%Y")
+    to_date = (as_of_date + timedelta(days=lookforward_days)).strftime("%d-%m-%Y")
 
     try:
         data = _nse_get(
