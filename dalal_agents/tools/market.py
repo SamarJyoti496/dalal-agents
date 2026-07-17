@@ -9,6 +9,7 @@ import requests
 import yfinance as yf
 
 from dalal_agents.tools.guards import _check_lookahead, _flatten_columns, _strip_tz
+from dalal_agents.tools.sector_index import SECTOR_INDEX, SECTOR_NAMES
 
 
 def _nse_get(path: str, params: dict | None = None) -> dict | list:
@@ -40,95 +41,6 @@ def _nse_get(path: str, params: dict | None = None) -> dict | list:
     )
     resp.raise_for_status()
     return resp.json()
-
-
-# Sector index map: NSE ticker → yfinance sector index symbol
-_SECTOR_INDEX: dict[str, str] = {
-    # Banking
-    "HDFCBANK": "^NSEBANK",
-    "ICICIBANK": "^NSEBANK",
-    "KOTAKBANK": "^NSEBANK",
-    "SBIN": "^NSEBANK",
-    "AXISBANK": "^NSEBANK",
-    "BANKBARODA": "^NSEBANK",
-    "INDUSINDBK": "^NSEBANK",
-    "FEDERALBNK": "^NSEBANK",
-    "IDFCFIRSTB": "^NSEBANK",
-    "AUBANK": "^NSEBANK",
-    "CSBBANK": "^NSEBANK",
-    # IT / Technology
-    "TCS": "^CNXIT",
-    "INFY": "^CNXIT",
-    "WIPRO": "^CNXIT",
-    "HCLTECH": "^CNXIT",
-    "TECHM": "^CNXIT",
-    "LTIM": "^CNXIT",
-    "MPHASIS": "^CNXIT",
-    "PERSISTENT": "^CNXIT",
-    "COFORGE": "^CNXIT",
-    "OFSS": "^CNXIT",
-    # Auto
-    "MARUTI": "^CNXAUTO",
-    "M&M": "^CNXAUTO",
-    "TATAMOTORS": "^CNXAUTO",
-    "BAJAJ-AUTO": "^CNXAUTO",
-    "EICHERMOT": "^CNXAUTO",
-    "HEROMOTOCO": "^CNXAUTO",
-    "TVSMOTOR": "^CNXAUTO",
-    "MOTHERSON": "^CNXAUTO",
-    # Pharma
-    "SUNPHARMA": "^CNXPHARMA",
-    "DRREDDY": "^CNXPHARMA",
-    "CIPLA": "^CNXPHARMA",
-    "DIVISLAB": "^CNXPHARMA",
-    "LUPIN": "^CNXPHARMA",
-    "AUROPHARMA": "^CNXPHARMA",
-    "TORNTPHARM": "^CNXPHARMA",
-    "ALKEM": "^CNXPHARMA",
-    # FMCG
-    "HINDUNILVR": "^CNXFMCG",
-    "ITC": "^CNXFMCG",
-    "NESTLEIND": "^CNXFMCG",
-    "BRITANNIA": "^CNXFMCG",
-    "DABUR": "^CNXFMCG",
-    "MARICO": "^CNXFMCG",
-    "COLPAL": "^CNXFMCG",
-    "GODREJCP": "^CNXFMCG",
-    # Energy / Oil & Gas
-    "RELIANCE": "^CNXENERGY",
-    "ONGC": "^CNXENERGY",
-    "BPCL": "^CNXENERGY",
-    "HPCL": "^CNXENERGY",
-    "IOC": "^CNXENERGY",
-    "GAIL": "^CNXENERGY",
-    "PETRONET": "^CNXENERGY",
-    "OIL": "^CNXENERGY",
-    # Metals
-    "TATASTEEL": "^CNXMETAL",
-    "HINDALCO": "^CNXMETAL",
-    "JSWSTEEL": "^CNXMETAL",
-    "VEDL": "^CNXMETAL",
-    "SAIL": "^CNXMETAL",
-    "NMDC": "^CNXMETAL",
-    "NATIONALUM": "^CNXMETAL",
-    # Financial Services (non-bank)
-    "BAJFINANCE": "^CNXFINANCE",
-    "BAJAJFINSV": "^CNXFINANCE",
-    "HDFCLIFE": "^CNXFINANCE",
-    "SBILIFE": "^CNXFINANCE",
-    "ICICIPRULI": "^CNXFINANCE",
-    "CHOLAFIN": "^CNXFINANCE",
-    "MUTHOOTFIN": "^CNXFINANCE",
-    "LICHSGFIN": "^CNXFINANCE",
-    # Infrastructure / Cement
-    "LARSEN": "^CNXINFRA",
-    "ULTRACEMCO": "^CNXINFRA",
-    "ADANIPORTS": "^CNXINFRA",
-    "SHREECEM": "^CNXINFRA",
-    "AMBUJACEMENT": "^CNXINFRA",
-    "ACC": "^CNXINFRA",
-    "GMRINFRA": "^CNXINFRA",
-}
 
 
 def get_ohlcv(
@@ -257,19 +169,8 @@ def get_sector_index_context(ticker: str, as_of_date: date) -> dict:
     _check_lookahead(as_of_date)
     import pandas_ta as ta
 
-    sector_sym = _SECTOR_INDEX.get(ticker.upper(), "^NSEI")
-    sector_name = {
-        "^NSEBANK": "Nifty Bank",
-        "^CNXIT": "Nifty IT",
-        "^CNXAUTO": "Nifty Auto",
-        "^CNXPHARMA": "Nifty Pharma",
-        "^CNXFMCG": "Nifty FMCG",
-        "^CNXENERGY": "Nifty Energy",
-        "^CNXMETAL": "Nifty Metal",
-        "^CNXFINANCE": "Nifty Financial Services",
-        "^CNXINFRA": "Nifty Infrastructure",
-        "^NSEI": "Nifty 50",
-    }.get(sector_sym, sector_sym)
+    sector_sym = SECTOR_INDEX.get(ticker.upper(), "^NSEI")
+    sector_name = SECTOR_NAMES.get(sector_sym, sector_sym)
 
     try:
         df = yf.download(
