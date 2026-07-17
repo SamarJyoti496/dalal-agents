@@ -4,7 +4,7 @@ DalalAgents is a multi-agent LLM system that analyses Indian stock market ticker
 
 
 ## How it works
-![Alt Text](design.png)
+![Alt Text](images/design.png)
 
 Every agent runs a **ReAct loop** (`dalal_agents/agents/base.py`): it can call tools (yfinance, screener.in, NewsAPI, Reddit), inspect results, then produce a Pydantic-typed JSON output. Stages share a single `TradingState` blackboard object, so each stage sees everything the earlier stages produced. Progress is checkpointed to SQLite after every stage, so a crash mid-run doesn't waste the LLM calls already spent.
 
@@ -136,6 +136,8 @@ python -m cli.main analyze
 ```
 
 A `questionary` wizard (ticker, date, exchange, provider - Claude/Gemini/OpenAI/Grok/Ollama/OpenRouter - debate rounds, cache on/off) followed by a live-updating Rich dashboard: a per-agent progress table, a scrolling activity log, a current-report panel, and running LLM call/token stats, all driven by the pipeline's `progress_callback` events. At the end you can optionally print the full report and save the run's `TradingState` as JSON under `reports/`.
+
+![Interactive TUI](images/cli.png)
 
 To exercise the TUI itself with zero API calls (useful when iterating on the display):
 
