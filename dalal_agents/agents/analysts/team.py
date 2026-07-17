@@ -10,6 +10,7 @@ from rich.live import Live
 from rich.table import Table
 from rich.text import Text
 
+from dalal_agents.display import SIGNAL_STYLE as _SIGNAL_STYLE
 from dalal_agents.models import TradingState
 from dalal_agents.agents.analysts.fundamentals import FundamentalsAnalystAgent
 from dalal_agents.agents.analysts.news import NewsAnalystAgent
@@ -18,14 +19,6 @@ from dalal_agents.agents.analysts.technical import TechnicalAnalystAgent
 
 _console = Console()
 logger = logging.getLogger("dalal_agents.agents")
-
-_SIGNAL_STYLE: dict[str, str] = {
-    "STRONG_BUY": "bold green",
-    "BUY": "green",
-    "HOLD": "yellow",
-    "SELL": "red",
-    "STRONG_SELL": "bold red",
-}
 
 
 class AnalystTeam:

@@ -40,6 +40,7 @@ from dalal_agents.config import (
     DEFAULT_OLLAMA_MODEL,
     NEWSAPI_KEY, REDDIT_CLIENT_ID, REDDIT_SECRET, REDDIT_USER_AGENT,
 )
+from dalal_agents.display import SIGNAL_STYLE as _SIGNAL_COLOR
 from dalal_agents.models import Exchange
 from dalal_agents.pipeline import run_pipeline
 from cli.mock import fake_pipeline
@@ -81,14 +82,6 @@ _STAGE_AGENTS: dict[str, list[str]] = {
     "Risk Debate":     ["Risk Debate"],
     "Risk Assessment": ["Risk Assessment"],
     "Fund Manager":    ["Fund Manager"],
-}
-
-_SIGNAL_COLOR = {
-    "STRONG_BUY":  "bold green",
-    "BUY":         "green",
-    "HOLD":        "yellow",
-    "SELL":        "red",
-    "STRONG_SELL": "bold red",
 }
 
 

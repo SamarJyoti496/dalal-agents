@@ -42,6 +42,7 @@ from dalal_agents.config import (
     REDDIT_SECRET,
     REDDIT_USER_AGENT,
 )
+from dalal_agents.display import SIGNAL_STYLE as _SIGNAL_STYLE
 from dalal_agents.logging_config import setup_logging
 from dalal_agents.models import Exchange
 from dalal_agents.pipeline import DB_PATH, get_nse_trading_days, load_state, run_backtest, run_pipeline
@@ -73,15 +74,6 @@ def _make_llm(provider: str, model: str | None = None):
     if not OPENAI_API_KEY:
         _key_error("OPENAI_API_KEY")
     return OpenAIClient(model=model or DEFAULT_OPENAI_MODEL)
-
-
-_SIGNAL_STYLE: dict[str, str] = {
-    "STRONG_BUY":  "bold green",
-    "BUY":         "green",
-    "HOLD":        "yellow",
-    "SELL":        "red",
-    "STRONG_SELL": "bold red",
-}
 
 
 def _fmt_inr(val) -> str:
