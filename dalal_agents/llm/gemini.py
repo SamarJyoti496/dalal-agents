@@ -8,10 +8,10 @@ from google import genai
 from google.genai import types
 
 from dalal_agents.config import DEFAULT_GEMINI_MODEL, GEMINI_API_KEY
-from dalal_agents.llm.base import LLMResponse
+from dalal_agents.llm.base import BaseLLMClient, LLMResponse
 
 
-class GeminiClient:
+class GeminiClient(BaseLLMClient):
     """
     Async wrapper around the Google Generative AI SDK (google-genai >= 1.0).
 
@@ -20,16 +20,11 @@ class GeminiClient:
     """
 
     def __init__(self, model: str = DEFAULT_GEMINI_MODEL):
+        super().__init__(model)
         self._client = genai.Client(api_key=GEMINI_API_KEY)
-        self.model = model
-        self._calls = 0
-        self._tokens_in = 0
-        self._tokens_out = 0
 
     @staticmethod
     def _to_gemini_tools(tools: list[dict]):
-        from google.genai import types
-
         decls = [
             types.FunctionDeclaration(
                 name=t["name"],
@@ -103,8 +98,6 @@ class GeminiClient:
         tools: Optional[list[dict]] = None,
         max_tokens: int = 4096,
     ) -> LLMResponse:
-        from google.genai import types
-
         contents = self._to_gemini_contents(messages)
 
         config_kwargs: dict[str, Any] = {
@@ -151,10 +144,4 @@ class GeminiClient:
             input_tokens=getattr(usage, "prompt_token_count", 0) or 0,
             output_tokens=getattr(usage, "candidates_token_count", 0) or 0,
         )
-        self._calls += 1
-        self._tokens_in += resp.input_tokens
-        self._tokens_out += resp.output_tokens
-        return resp
-
-    def get_stats(self) -> dict:
-        return {"calls": self._calls, "tokens_in": self._tokens_in, "tokens_out": self._tokens_out}
+        return self._record_usage(resp)

@@ -2,21 +2,18 @@ from __future__ import annotations
 
 from typing import Any, Optional
 
+from anthropic import AsyncAnthropic
+
 from dalal_agents.config import ANTHROPIC_API_KEY, DEFAULT_MODEL
-from dalal_agents.llm.base import LLMResponse
+from dalal_agents.llm.base import BaseLLMClient, LLMResponse
 
 
-class AnthropicClient:
+class AnthropicClient(BaseLLMClient):
     """Async wrapper around the Anthropic Python SDK."""
 
     def __init__(self, model: str = DEFAULT_MODEL):
-        from anthropic import AsyncAnthropic
-
+        super().__init__(model)
         self._client = AsyncAnthropic(api_key=ANTHROPIC_API_KEY)
-        self.model = model
-        self._calls = 0
-        self._tokens_in = 0
-        self._tokens_out = 0
 
     async def call(
         self,
@@ -51,10 +48,4 @@ class AnthropicClient:
             input_tokens=response.usage.input_tokens,
             output_tokens=response.usage.output_tokens,
         )
-        self._calls += 1
-        self._tokens_in += resp.input_tokens
-        self._tokens_out += resp.output_tokens
-        return resp
-
-    def get_stats(self) -> dict:
-        return {"calls": self._calls, "tokens_in": self._tokens_in, "tokens_out": self._tokens_out}
+        return self._record_usage(resp)

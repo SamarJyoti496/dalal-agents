@@ -3,21 +3,18 @@ from __future__ import annotations
 import json
 from typing import Any, Optional
 
+from openai import AsyncOpenAI
+
 from dalal_agents.config import OPENAI_API_KEY
-from dalal_agents.llm.base import LLMResponse
+from dalal_agents.llm.base import BaseLLMClient, LLMResponse
 
 
-class OpenAIClient:
+class OpenAIClient(BaseLLMClient):
     """Async wrapper around the OpenAI Python SDK."""
 
     def __init__(self, model: str = "gpt-4o"):
-        from openai import AsyncOpenAI
-
+        super().__init__(model)
         self._client = AsyncOpenAI(api_key=OPENAI_API_KEY)
-        self.model = model
-        self._calls = 0
-        self._tokens_in = 0
-        self._tokens_out = 0
 
     @staticmethod
     def _to_openai_tools(tools: list[dict]) -> list[dict]:
@@ -142,10 +139,4 @@ class OpenAIClient:
             input_tokens=usage.prompt_tokens if usage else 0,
             output_tokens=usage.completion_tokens if usage else 0,
         )
-        self._calls += 1
-        self._tokens_in += resp.input_tokens
-        self._tokens_out += resp.output_tokens
-        return resp
-
-    def get_stats(self) -> dict:
-        return {"calls": self._calls, "tokens_in": self._tokens_in, "tokens_out": self._tokens_out}
+        return self._record_usage(resp)
