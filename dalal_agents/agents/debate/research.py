@@ -51,7 +51,7 @@ def _build_research_context(state: TradingState) -> str:
             f"Promoter holding: {r.promoter_holding_pct}%  |  "
             f"Promoter pledge: {r.promoter_pledge_pct}%\n"
             f"FII holding: {r.fii_holding_pct}%  |  DII: {r.dii_holding_pct}%\n"
-            f"D/E: {r.debt_to_equity}  |  Current ratio: {r.current_ratio}\n"
+            f"D/E: {r.debt_to_equity}\n"
             f"Summary: {r.summary}"
         )
 

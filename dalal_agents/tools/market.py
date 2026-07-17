@@ -158,6 +158,10 @@ def get_ohlcv(
     cols = [c for c in ["Open", "High", "Low", "Close", "Volume"] if c in df.columns]
     df = df[cols]
 
+    # Drop trailing rows with no Close — yfinance sometimes publishes a row for the
+    # most recent session (Volume already ticking) before it has finalized the OHLC.
+    df = df.dropna(subset=["Close"])
+
     if df.empty:
         raise ValueError(
             f"No data returned for '{ticker_symbol}' up to {as_of_date}. "
@@ -180,6 +184,8 @@ def get_india_vix(as_of_date: date) -> Optional[float]:
         df = _flatten_columns(df)
         df = _strip_tz(df)
         df = df[df.index <= pd.Timestamp(as_of_date)]
+        if "Close" in df.columns:
+            df = df.dropna(subset=["Close"])
         if df.empty or "Close" not in df.columns:
             return None
         return round(float(df["Close"].iloc[-1]), 2)
@@ -202,6 +208,7 @@ def get_nifty_context(as_of_date: date) -> dict:
     df = _flatten_columns(df)
     df = _strip_tz(df)
     df = df[df.index <= pd.Timestamp(as_of_date)]
+    df = df.dropna(subset=["Close"])
 
     close = round(float(df["Close"].iloc[-1]), 2)
 
@@ -276,6 +283,8 @@ def get_sector_index_context(ticker: str, as_of_date: date) -> dict:
         df = _flatten_columns(df)
         df = _strip_tz(df)
         df = df[df.index <= pd.Timestamp(as_of_date)]
+        if "Close" in df.columns:
+            df = df.dropna(subset=["Close"])
 
         if df.empty or "Close" not in df.columns:
             return {"error": f"No data for {sector_sym}", "sector": sector_name}

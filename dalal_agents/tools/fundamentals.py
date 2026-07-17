@@ -35,18 +35,18 @@ def get_screener_fundamentals(ticker: str, as_of_date: date) -> dict:
 
     label_map = {
         "Stock P/E": "pe_ratio",
-        "Price to Book": "pb_ratio",
         "ROCE": "roce",
         "ROE": "roe",
-        "Debt to equity": "debt_to_equity",
         "Promoter Holding": "promoter_holding_pct",
         "Pledged percentage": "promoter_pledge_pct",
         "FII": "fii_holding_pct",
         "DII": "dii_holding_pct",
         "Market Cap": "market_cap_cr",
         "Dividend Yield": "dividend_yield",
-        "Current ratio": "current_ratio",
-        "Interest Coverage": "interest_coverage",
+    }
+    price_labels = {
+        "Current Price": "current_price",
+        "Book Value": "book_value",
     }
 
     result: dict = {
@@ -54,28 +54,40 @@ def get_screener_fundamentals(ticker: str, as_of_date: date) -> dict:
         "ticker": ticker,
         "as_of_date": str(as_of_date),
     }
+    prices: dict = {}
 
     for li in soup.find_all("li"):
         name_span = li.find("span", class_="name")
         if not name_span:
             continue
         label = name_span.get_text(strip=True)
-        if label not in label_map:
+        if label not in label_map and label not in price_labels:
             continue
         val_span = li.find("span", class_=["number", "value"])
-        if val_span:
-            raw = (
-                val_span.get_text(strip=True)
-                .replace(",", "")
-                .replace("%", "")
-                .replace("₹", "")
-                .replace("Cr.", "")
-                .strip()
-            )
-            try:
-                result[label_map[label]] = float(raw)
-            except ValueError:
-                result[label_map[label]] = None
+        if not val_span:
+            continue
+        raw = (
+            val_span.get_text(strip=True)
+            .replace(",", "")
+            .replace("%", "")
+            .replace("₹", "")
+            .replace("Cr.", "")
+            .strip()
+        )
+        try:
+            value = float(raw)
+        except ValueError:
+            value = None
+        if label in label_map:
+            result[label_map[label]] = value
+        else:
+            prices[price_labels[label]] = value
+
+    result["pb_ratio"] = (
+        round(prices["current_price"] / prices["book_value"], 2)
+        if prices.get("current_price") and prices.get("book_value")
+        else None
+    )
 
     shareholding_map = {
         "Promoters": "promoter_holding_pct",
@@ -97,7 +109,35 @@ def get_screener_fundamentals(ticker: str, as_of_date: date) -> dict:
             except ValueError:
                 result[shareholding_map[row_label]] = None
 
-    for key in label_map.values():
+    balance_sheet_map = {
+        "Equity Capital": "equity_capital",
+        "Reserves": "reserves",
+        "Borrowings": "borrowings",
+    }
+    balance_sheet = soup.find("section", id="balance-sheet")
+    balance_sheet_vals: dict = {}
+    if balance_sheet:
+        for row in balance_sheet.find_all("tr"):
+            cells = row.find_all(["td", "th"])
+            if not cells:
+                continue
+            row_label = cells[0].get_text(strip=True).rstrip("+").strip()
+            if row_label not in balance_sheet_map:
+                continue
+            raw = cells[-1].get_text(strip=True).replace(",", "").strip()
+            try:
+                balance_sheet_vals[balance_sheet_map[row_label]] = float(raw)
+            except ValueError:
+                pass
+
+    equity = balance_sheet_vals.get("equity_capital", 0) + balance_sheet_vals.get("reserves", 0)
+    result["debt_to_equity"] = (
+        round(balance_sheet_vals["borrowings"] / equity, 3)
+        if "borrowings" in balance_sheet_vals and equity
+        else None
+    )
+
+    for key in [*label_map.values(), "pb_ratio", "debt_to_equity"]:
         result.setdefault(key, None)
 
     return result

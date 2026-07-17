@@ -115,8 +115,6 @@ class FundamentalsReport(BaseModel):
     fii_holding_pct: Optional[float] = None
     dii_holding_pct: Optional[float] = None
     debt_to_equity: Optional[float] = None
-    current_ratio: Optional[float] = None
-    interest_coverage: Optional[float] = None
     signal: Signal
     conviction: int = Field(ge=1, le=10)
     summary: str

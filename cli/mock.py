@@ -1,9 +1,6 @@
 """
 cli/mock.py — Fake pipeline for CLI/TUI smoke-testing.
 
-Simulates the full 3-stage pipeline using asyncio.sleep delays so the
-Rich TUI can be exercised without any LLM API calls or network access.
-Import and call `fake_pipeline` from cli/main.py when running in mock mode.
 """
 from __future__ import annotations
 
