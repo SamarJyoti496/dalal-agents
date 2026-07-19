@@ -18,3 +18,4 @@ nsefin>=0.1.0
 google-genai>=1.0
 pyfiglet>=0.8
 black==26.5.1
+feedparser==6.0.12
